@@ -10,4 +10,5 @@ int get_joystick_state();
 
 // Print joystick state in String
 char *show_joystick_state();
+bool get_joystick_btn(uint8_t);
 #endif

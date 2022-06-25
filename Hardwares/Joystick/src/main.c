@@ -39,11 +39,12 @@ int main(void) {
 
   while (1) {
 
-    
-    memset(rw_buf, '\0', sizeof(rw_buf));
-    hx_drv_i2cm_read_data(SS_IIC_0_ID, dev_addr, rw_buf, 2);
-    printf("ADC 3021: %d, %d\r\n", rw_buf[0], rw_buf[1]);
-
+    /*
+        memset(rw_buf, '\0', sizeof(rw_buf));
+        hx_drv_i2cm_read_data(SS_IIC_0_ID, dev_addr, rw_buf, 2);
+        printf("ADC 3021: %d, %d\r\n", rw_buf[0], rw_buf[1]);
+    */
+    printf("Now joystick in : %s\n", show_joystick_state());
     board_delay_ms(3000);
   }
 

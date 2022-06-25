@@ -1,0 +1,21 @@
+/*
+ * app_state.h
+ *
+ *  Created on: 2019¦~9¤ë7¤é
+ *      Author: 902447
+ */
+
+#ifndef SCENARIO_APP_AIOT_BODYDETECT_ALLON_APP_STATE_H_
+#define SCENARIO_APP_AIOT_BODYDETECT_ALLON_APP_STATE_H_
+
+
+typedef enum
+{
+	APP_STATE_INIT,
+	APP_STATE_FACE_LIVE_HW5X5JPEG,
+	APP_STATE_STOP,
+}APP_STATE_E;
+
+
+
+#endif /* SCENARIO_APP_AIOT_BODYDETECT_ALLON_APP_STATE_H_ */

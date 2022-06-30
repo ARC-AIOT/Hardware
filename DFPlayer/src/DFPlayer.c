@@ -35,21 +35,15 @@ void pause() { execute_cmd(_PLAY_PAUSE, 0, 0); }
 void play() {
   execute_cmd(_PLAY_START, 0, 1);
   board_delay_ms(100);
-  // execute_cmd(_PLAY_KEEP, 0, 1);
-  // board_delay_ms(100);
 }
 
 void playNext() {
   execute_cmd(_PLAY_NEXT, 0, 1);
   board_delay_ms(100);
-  execute_cmd(_PLAY_KEEP, 0, 1);
-  board_delay_ms(100);
 }
 
 void playPrev() {
   execute_cmd(_PLAY_PREV, 0, 1);
-  board_delay_ms(100);
-  execute_cmd(_PLAY_KEEP, 0, 1);
   board_delay_ms(100);
 }
 
@@ -70,7 +64,7 @@ dfplayer Init_DFPlayer() {
   return dfp;
 }
 
-/*
+/* Should avoid dynamically allocated obj
 dfplayer *Init_DFPlayer() {
   dfplayer *dfp = malloc(sizeof(dfplayer));
   dfp->play = play;

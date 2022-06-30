@@ -35,7 +35,7 @@ int main(void) {
   board_delay_ms(500);
   int i = 0;
   while (1) {
-    printf("Hello %d\n", i);
+    printf("HI %d\n", i);
     board_delay_ms(1000);
   }
 

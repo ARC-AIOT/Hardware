@@ -27,9 +27,7 @@ void execute_cmd(uint8_t CMD, uint8_t Par1, uint8_t Par2) {
       Par1,        Par2,          highCheck,       lowCheck, _End_Byte};
 
   // send cmd to module
-  // dev_ptr->uart_write(Command_line, 10);
   send_cmd(SC16IS750_PROTOCOL_SPI, Command_line, 10);
-  // for (byte k = 0; k < 10; k++) { dev_ptr->uart_write(Command_line[k]); }
 }
 
 void pause() { execute_cmd(_PLAY_PAUSE, 0, 0); }
@@ -37,8 +35,8 @@ void pause() { execute_cmd(_PLAY_PAUSE, 0, 0); }
 void play() {
   execute_cmd(_PLAY_START, 0, 1);
   board_delay_ms(100);
-  execute_cmd(_PLAY_KEEP, 0, 1);
-  board_delay_ms(100);
+  // execute_cmd(_PLAY_KEEP, 0, 1);
+  // board_delay_ms(100);
 }
 
 void playNext() {
@@ -55,11 +53,28 @@ void playPrev() {
   board_delay_ms(100);
 }
 
-void set_vol(int vol) { execute_cmd(_SET_VOL, 0, vol); }
+void playNum(uint16_t song_num) {
+  char highNum = (char)(song_num >> 8);  // High byte of song_num
+  char lowNum = (char)(song_num & 0xFF); // Low byte of song_num
+  execute_cmd(_PLAY_NUM, highNum, lowNum);
+  board_delay_ms(100);
+}
 
+void set_vol(uint8_t vol) { execute_cmd(_SET_VOL, 0, ((vol - 1) & 0x1f)); }
+
+dfplayer Init_DFPlayer() {
+  dfplayer dfp = {play,  playNum, playNext,   playPrev,
+                  pause, set_vol, execute_cmd};
+  execute_cmd(_PLAY_Init, 0, 0);
+  board_delay_ms(500);
+  return dfp;
+}
+
+/*
 dfplayer *Init_DFPlayer() {
   dfplayer *dfp = malloc(sizeof(dfplayer));
   dfp->play = play;
+  dfp->playNum = playNum;
   dfp->next = playNext;
   dfp->prev = playPrev;
   dfp->pause = pause;
@@ -69,3 +84,4 @@ dfplayer *Init_DFPlayer() {
   board_delay_ms(500);
   return dfp;
 }
+*/

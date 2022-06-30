@@ -17,10 +17,11 @@
 
 struct __dfplayer {
   void (*play)();
+  void (*playNum)(uint16_t song_num);
   void (*next)();
   void (*prev)();
   void (*pause)();
-  void (*set_vol)(int volume);
+  void (*set_vol)(uint8_t volume);
   void (*sendCmd)(uint8_t, uint8_t, uint8_t);
 };
 typedef struct __dfplayer dfplayer;
@@ -30,6 +31,7 @@ void pause();
 void play();
 void playNext();
 void playPrev();
-void set_vol(int vol);
-dfplayer *Init_DFPlayer();
+void set_vol(uint8_t vol);
+void playNum(uint16_t song_num);
+dfplayer Init_DFPlayer();
 #endif

@@ -1,0 +1,71 @@
+#include "DFPlayer.h"
+
+#define _Start_Byte 0x7E
+#define _Version_Byte 0xFF
+#define _Command_Length 0x06
+#define _End_Byte 0xEF
+#define _Acknowledge 0x00
+
+#define _PLAY_NEXT 0x01
+#define _PLAY_PREV 0x02
+#define _PLAY_NUM 0x03
+#define _SET_VOL 0x06
+#define _PLAY_START 0x0D
+#define _PLAY_PAUSE 0x0E
+#define _PLAY_KEEP 0x11
+#define _PLAY_Init 0x3F
+
+void execute_cmd(uint8_t CMD, uint8_t Par1, uint8_t Par2) {
+  // calcute checksum (2 bytes)
+  uint16_t checksum =
+      -(_Version_Byte + _Command_Length + CMD + _Acknowledge + Par1 + Par2);
+  char highCheck = (char)(checksum >> 8);  // High byte of checksum
+  char lowCheck = (char)(checksum & 0xFF); // Low byte of checksum
+  // construct command;
+  char Command_line[10] = {
+      _Start_Byte, _Version_Byte, _Command_Length, CMD,      _Acknowledge,
+      Par1,        Par2,          highCheck,       lowCheck, _End_Byte};
+
+  // send cmd to module
+  // dev_ptr->uart_write(Command_line, 10);
+  send_cmd(SC16IS750_PROTOCOL_SPI, Command_line, 10);
+  // for (byte k = 0; k < 10; k++) { dev_ptr->uart_write(Command_line[k]); }
+}
+
+void pause() { execute_cmd(_PLAY_PAUSE, 0, 0); }
+
+void play() {
+  execute_cmd(_PLAY_START, 0, 1);
+  board_delay_ms(100);
+  execute_cmd(_PLAY_KEEP, 0, 1);
+  board_delay_ms(100);
+}
+
+void playNext() {
+  execute_cmd(_PLAY_NEXT, 0, 1);
+  board_delay_ms(100);
+  execute_cmd(_PLAY_KEEP, 0, 1);
+  board_delay_ms(100);
+}
+
+void playPrev() {
+  execute_cmd(_PLAY_PREV, 0, 1);
+  board_delay_ms(100);
+  execute_cmd(_PLAY_KEEP, 0, 1);
+  board_delay_ms(100);
+}
+
+void set_vol(int vol) { execute_cmd(_SET_VOL, 0, vol); }
+
+dfplayer *Init_DFPlayer() {
+  dfplayer *dfp = malloc(sizeof(dfplayer));
+  dfp->play = play;
+  dfp->next = playNext;
+  dfp->prev = playPrev;
+  dfp->pause = pause;
+  dfp->set_vol = set_vol;
+  dfp->sendCmd = execute_cmd;
+  dfp->sendCmd(_PLAY_Init, 0, 0);
+  board_delay_ms(500);
+  return dfp;
+}

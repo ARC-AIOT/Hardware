@@ -25,6 +25,11 @@ int main(void) {
   HX_GPIOSetup();
   IRQSetup();
   UartInit(SC16IS750_PROTOCOL_SPI);
+  GPIOSetPinMode(SC16IS750_PROTOCOL_SPI, CH_A, GPIO1, INPUT);
+  GPIOSetPinMode(SC16IS750_PROTOCOL_SPI, CH_A, GPIO5, OUTPUT);
+  GPIOSetPinMode(SC16IS750_PROTOCOL_SPI, CH_A, GPIO6, OUTPUT);
+  GPIOSetPinState(SC16IS750_PROTOCOL_SPI, CH_A, GPIO5, HIGH);
+  GPIOSetPinState(SC16IS750_PROTOCOL_SPI, CH_A, GPIO6, LOW);
 
   board_delay_ms(1000); // Wait for setting SPI
   printf("Setting DFPlayer...\n");
@@ -33,10 +38,17 @@ int main(void) {
   board_delay_ms(500);
   Player.play();
   board_delay_ms(500);
-  int i = 0;
+  int i = 1;
   while (1) {
-    printf("HI %d\n", i);
+    printf("%d PP state %d\n", i,
+           GPIOGetPinState(SC16IS750_PROTOCOL_SPI, CH_A, GPIO1));
     board_delay_ms(1000);
+    i++;
+    if (i % 25 == 0)
+      if (i & 1)
+        Player.pause();
+      else
+        Player.play();
   }
 
   return 0;

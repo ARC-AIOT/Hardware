@@ -1,20 +1,4 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include "embARC.h"
-#include "embARC_debug.h"
-#include "board_config.h"
-#include "arc_timer.h"
-#include "hardware_config.h"
 #include "SC16IS750_Bluepacket.h"
-
-#include "hx_drv_iic_m.h"
-#include "hx_drv_iomux.h"
-#include "hx_drv_spi_m.h"
-#include "dw_spi.h"
-#include "dw_spi_hal.h"
-#include "rb8762cjf.h"
-#include "rw8711_Bluepacket.h"
 
 // volatile int int_flag;
 int int_flag;
@@ -30,16 +14,11 @@ uint8_t resp_buf[2048];
 uint8_t recv_a_buf[2048];
 // uint8_t recv_b_buf[2048];
 
-volatile static DEV_SPI_PTR dev_spi_m_ptr;
 DW_SPI_CTRL *spi_ctrl_ptr;
 DW_SPI_REG *spi_reg_ptr;
+volatile static DEV_SPI_PTR dev_spi_m_ptr;
 
-static void IRQ_Callback(void *param) {
-  // printf("into %s-%d\r\n", __func__, __LINE__);
-  int_flag = 1;
-  // printf("into %s-%d\r\n", __func__, __LINE__);
-  // IRQ_State(CH_A);
-}
+static void IRQ_Callback(void *param) { int_flag = 1; }
 
 int16_t i2cm_write_reg(uint8_t isChA, uint8_t reg_addr, int8_t *data,
                        int16_t data_len) {
@@ -132,6 +111,26 @@ uint8_t i2cm_read_reg(uint8_t isChA, uint8_t reg_addr) {
   return read_buf[0];
 }
 
+int16_t hal_spim_write(uint8_t cs_number, uint8_t *data, int16_t data_len) {
+  if (cs_number == 1) {
+    hx_drv_iomux_set_outvalue(IOMUX_PGPIO9, 1);
+    hx_drv_iomux_set_outvalue(IOMUX_PGPIO12, 0);
+  } else if (cs_number == 2) {
+    hx_drv_iomux_set_outvalue(IOMUX_PGPIO9, 0);
+    hx_drv_iomux_set_outvalue(IOMUX_PGPIO12, 1);
+  } else {
+    hx_drv_iomux_set_outvalue(IOMUX_PGPIO9, 0);
+    hx_drv_iomux_set_outvalue(IOMUX_PGPIO12, 0);
+  }
+
+  dw_spi_write(dev_spi_m_ptr, &data[0], data_len);
+
+  hx_drv_iomux_set_outvalue(IOMUX_PGPIO9, 0);
+  hx_drv_iomux_set_outvalue(IOMUX_PGPIO12, 0);
+
+  return 0;
+}
+
 int16_t spim_write_reg(uint8_t isChA, uint8_t reg_addr, int8_t *data,
                        int16_t data_len) {
   // printf("into %s-%d\r\n", __func__, __LINE__);
@@ -160,11 +159,11 @@ int16_t spim_write_reg(uint8_t isChA, uint8_t reg_addr, int8_t *data,
   */
   // dw_spi_write(dev_spi_m_ptr, data, data_len);
 
-  // hx_drv_iomux_set_outvalue(IOMUX_PGPIO9, 1);
-  // hx_drv_iomux_set_outvalue(IOMUX_PGPIO12, 0);
+  hx_drv_iomux_set_outvalue(IOMUX_PGPIO9, 1);
+  hx_drv_iomux_set_outvalue(IOMUX_PGPIO12, 0);
   dw_spi_write(dev_spi_m_ptr, send_buf, data_len + 1);
-  // hx_drv_iomux_set_outvalue(IOMUX_PGPIO9, 0);
-  // hx_drv_iomux_set_outvalue(IOMUX_PGPIO12, 0);
+  hx_drv_iomux_set_outvalue(IOMUX_PGPIO9, 0);
+  hx_drv_iomux_set_outvalue(IOMUX_PGPIO12, 0);
 
   // ret_i2c = hx_drv_i2cm_write_data(SC16IS75x_I2C_INTERFACE, device_addr,
   // reg_buf, 1, data, data_len);
@@ -192,7 +191,15 @@ uint8_t spim_read_reg(uint8_t isChA, uint8_t reg_addr) {
     reg_buf[0] = 0x02 | (reg_addr << 3) | 0x80;
   }
 
+  // printf("reg : %02hhx\r\n", reg_buf[0]);
+  hx_drv_iomux_set_outvalue(IOMUX_PGPIO9, 1);
+  hx_drv_iomux_set_outvalue(IOMUX_PGPIO12, 0);
   ret_spi = dw_spi_write_read(dev_spi_m_ptr, reg_buf, 1, read_buf, 1);
+  hx_drv_iomux_set_outvalue(IOMUX_PGPIO9, 0);
+  hx_drv_iomux_set_outvalue(IOMUX_PGPIO12, 0);
+
+  // printf("ret : %d\r\n", ret_i2c);
+  // printf("Read value stop: %02hhx\r\n", read_buf[0]);
 
   return read_buf[0];
 }
@@ -216,7 +223,25 @@ uint8_t spim_read_stream_reg(uint8_t isChA, uint8_t reg_addr, uint8_t *data_buf,
     reg_buf[0] = 0x02 | (reg_addr << 3) | 0x80;
   }
 
+  // printf("reg : %02hhx\r\n", reg_buf[0]);
+  // ret_i2c = hx_drv_i2cm_write_stop_read(SC16IS75x_I2C_INTERFACE, device_addr,
+  // reg_buf, 1, read_buf, 1);
+
+  hx_drv_iomux_set_outvalue(IOMUX_PGPIO9, 1);
+  hx_drv_iomux_set_outvalue(IOMUX_PGPIO12, 0);
   ret_spi = dw_spi_write_read(dev_spi_m_ptr, reg_buf, 1, data_buf, data_len);
+  hx_drv_iomux_set_outvalue(IOMUX_PGPIO9, 0);
+  hx_drv_iomux_set_outvalue(IOMUX_PGPIO12, 0);
+
+  // printf("ret : %d\r\n", ret_i2c);
+  // printf("Read value stop: %02hhx\r\n", read_buf[0]);
+  /*
+          int i;
+          for(i=0; i<data_len; i++)
+                  printf("%02hhx, ", data_buf[i]);
+
+          printf("\r\n");
+  */
 
   return read_buf[0];
 }
@@ -468,20 +493,22 @@ void UART_ReadBytes(uint8_t interface) {
   int8_t tmp;
   uint16_t data_len;
   uint16_t read_index;
+  uint8_t read_buf[64];
 
   uint8_t isChA = 0;
   uint8_t isChB = 0;
   int i;
-
   memset(recv_a_buf, '\0', sizeof(recv_a_buf));
-
   read_index = 0;
-  recv_a_index = 0;
 
   if (int_flag == 1) {
+    // while(int_flag ==1){
     int_flag = 0;
-    IRQ_State(interface, CH_A);
 
+    IRQ_State(interface, CH_A);
+    // IRQ_State(CH_B);
+
+    // tmp = i2cm_read_reg(CH_A, SC16IS750_REG_RXLVL);
     if (interface == SC16IS750_PROTOCOL_I2C) {
       tmp = i2cm_read_reg(CH_A, SC16IS750_REG_RXLVL);
     } else if (interface == SC16IS750_PROTOCOL_SPI) {
@@ -500,6 +527,9 @@ void UART_ReadBytes(uint8_t interface) {
           memcpy(resp_buf + recv_a_index, recv_a_buf + read_index, tmp);
           read_index += tmp;
           recv_a_index += read_index;
+          // for(i=0; i<tmp; i++)
+          //	printf("%02hhx, ", read_buf[i]);
+          // printf("\r\n");
         }
 
       } else if (interface == SC16IS750_PROTOCOL_SPI) {
@@ -510,8 +540,22 @@ void UART_ReadBytes(uint8_t interface) {
           read_index += tmp;
           recv_a_index += tmp;
         }
+        // memcpy(recv_a_buf+read_index, read_buf, tmp);
+
+        // for(i=0; i<tmp; i++)
+        //	printf("%02hhx, ", read_buf[i]);
+        // printf("\r\n");
       }
+
+      // for(i=0; i<tmp; i++)
+      //	printf("%02hhx, ", )
     }
+
+    // printf("%s, %d\r\n", read_buf, read_index);
+    // printf("%s, %d, %d, %d, %02hhx\r\n", recv_a_buf, read_index, isChA,
+    // rx_a_int_flag, temp_iir);
+    // printf("%s, %d, %d, %d, %d, %02hhx\r\n", resp_buf, read_index, isChA,
+    // rx_a_int_flag, recv_a_index, temp_iir);
     rx_a_int_flag = 0;
     rx_b_int_flag = 0;
   }
@@ -560,7 +604,7 @@ void SetLine(uint8_t interface, uint8_t isChA, uint8_t data_length,
   }
 
   switch (parity_select) { // parity selection length settings
-  case 0:                  // no parity
+  case 0: // no parity
     break;
   case 1: // odd parity
     temp_lcr |= 0x08;
@@ -598,8 +642,6 @@ void GPIOSetPinMode(uint8_t interface, uint8_t isChA, uint8_t pin_number,
 
   memset(send_buf, '\0', sizeof(send_buf));
 
-  // temp_iodir = ReadRegister(SC16IS750_REG_IODIR);
-  // temp_iodir = ReadRegister(SC16IS750_REG_IODIR);
   if (interface == SC16IS750_PROTOCOL_I2C) {
     temp_iodir = i2cm_read_reg(isChA, SC16IS750_REG_IODIR);
   } else if (interface == SC16IS750_PROTOCOL_SPI) {
@@ -618,7 +660,6 @@ void GPIOSetPinMode(uint8_t interface, uint8_t isChA, uint8_t pin_number,
   } else if (interface == SC16IS750_PROTOCOL_SPI) {
     spim_write_reg(isChA, SC16IS750_REG_IODIR, send_buf, 1);
   }
-  // WriteRegister(SC16IS750_REG_IODIR, temp_iodir);
 
   return;
 }
@@ -631,7 +672,7 @@ void GPIOSetPinState(uint8_t interface, uint8_t isChA, uint8_t pin_number,
   memset(send_buf, '\0', sizeof(send_buf));
 
   if (int_flag == 1) {
-    printf("into %s-%d\r\n", __func__, __LINE__);
+    // printf("into %s-%d\r\n", __func__, __LINE__);
     IRQ_State(interface, CH_A);
     if (interface == SC16IS750_PROTOCOL_I2C) {
       temp_iostate = i2cm_read_reg(isChA, SC16IS750_REG_IOSTATE);
@@ -639,7 +680,7 @@ void GPIOSetPinState(uint8_t interface, uint8_t isChA, uint8_t pin_number,
       temp_iostate = spim_read_reg(isChA, SC16IS750_REG_IOSTATE);
     }
   } else {
-    printf("into %s-%d\r\n", __func__, __LINE__);
+    // printf("into %s-%d\r\n", __func__, __LINE__);
     if (interface == SC16IS750_PROTOCOL_I2C) {
       temp_iostate = i2cm_read_reg(isChA, SC16IS750_REG_IOSTATE);
     } else if (interface == SC16IS750_PROTOCOL_SPI) {
@@ -647,7 +688,7 @@ void GPIOSetPinState(uint8_t interface, uint8_t isChA, uint8_t pin_number,
     }
   }
 
-  printf("temp_iostate : %02hhx\r\n", temp_iostate);
+  // printf("temp_iostate : %02hhx\r\n", temp_iostate);
 
   if (pin_state == 1) {
     temp_iostate |= (0x01 << pin_number);
@@ -662,8 +703,8 @@ void GPIOSetPinState(uint8_t interface, uint8_t isChA, uint8_t pin_number,
     spim_write_reg(isChA, SC16IS750_REG_IOSTATE, send_buf, 1);
   }
   // WriteRegister(SC16IS750_REG_IOSTATE, temp_iostate);
-  printf("iostate-%d,%d : %02hhx\r\n", pin_number, pin_state,
-         spim_read_reg(isChA, SC16IS750_REG_IOSTATE));
+  // printf("iostate-%d,%d : %02hhx\r\n", pin_number, pin_state,
+  // spim_read_reg(isChA, SC16IS750_REG_IOSTATE));
   return;
 }
 
@@ -673,9 +714,8 @@ uint8_t GPIOGetPinState(uint8_t interface, uint8_t isChA, uint8_t pin_number) {
   if (interface == SC16IS750_PROTOCOL_I2C) {
     temp_iostate = i2cm_read_reg(isChA, SC16IS750_REG_IOSTATE);
   } else if (interface == SC16IS750_PROTOCOL_SPI) {
-    temp_iostate = i2cm_read_reg(isChA, SC16IS750_REG_IOSTATE);
+    temp_iostate = spim_read_reg(isChA, SC16IS750_REG_IOSTATE);
   }
-  // temp_iostate = ReadRegister(SC16IS750_REG_IOSTATE);
 
   // printf("temp_iostate :%02hhx, %02hhx\r\n", temp_iostate, temp_iostate &
   // (0x01 << pin_number));
@@ -734,6 +774,13 @@ void InterruptControl(uint8_t interface, uint8_t isChA, uint8_t int_ena) {
   return;
 }
 
+/*
+uint8_t InterruptPendingTest(void)
+{
+        return (ReadRegister(SC16IS750_REG_IIR) & 0x01);
+}
+*/
+
 void IRQ_State(uint8_t interface, uint8_t isChA) {
   uint8_t irq_src;
 
@@ -742,6 +789,7 @@ void IRQ_State(uint8_t interface, uint8_t isChA) {
   } else if (interface == SC16IS750_PROTOCOL_SPI) {
     irq_src = spim_read_reg(isChA, SC16IS750_REG_IIR);
   }
+
   temp_iir = irq_src;
   // irq_src = ReadRegister(SC16IS750_REG_IIR);
   // printf("iir : %02hhx\r\n", irq_src);
@@ -773,8 +821,8 @@ void IRQ_State(uint8_t interface, uint8_t isChA) {
   case 0x00: // modem interrupt;
     break;
   case 0x30: // input pin change of state
-    temp_gpio_state = (isChA == 1 ? GPIOGetPinState(interface, CH_A, GPIO4)
-                                  : GPIOGetPinState(interface, CH_B, GPIO4));
+    // temp_gpio_state = (isChA==1? GPIOGetPinState(interface, CH_A, GPIO6) :
+    // GPIOGetPinState(interface, CH_B, GPIO6));
     if (isChA == 1) {
       gpio_a_int_flag = 1;
     } else {
@@ -792,41 +840,85 @@ void IRQ_State(uint8_t interface, uint8_t isChA) {
   return;
 }
 
-void data_receive(uint8_t interface, uint8_t *mes, uint16_t wait) {
-  int retry;
-  int jumper_flag = 0;
+void InitGPIOSetup(uint8_t interface) {
 
-  jumper_flag = 0;
-  recv_a_index = 0;
-  memset(resp_buf, '\0', sizeof(resp_buf));
+  printf("into %s-%d\r\n", __func__, __LINE__);
+  uint8_t send_buf[2];
+  memset(send_buf, '\0', sizeof(send_buf));
 
-  while (1) {
-    retry = 0;
-    while (int_flag == 0 && jumper_flag == 0) {
-      // if(retry>200){
-      if (retry > wait) {
-        jumper_flag = 1;
-        break;
-      }
-      board_delay_ms(1);
-      retry++;
-    }
+  GPIOSetPinMode(interface, CH_A, GPIO1, OUTPUT);
+  GPIOSetPinMode(interface, CH_A, GPIO0, OUTPUT);
 
-    UART_ReadBytes(interface);
-    if (strstr(resp_buf, mes) != NULL) {
-      printf("%s", resp_buf);
-      break;
-    }
+  GPIOSetPinMode(interface, CH_A, GPIO6, INPUT);
 
-    if (jumper_flag == 1) {
-      printf("%s", resp_buf);
-      break;
-    }
-    // board_delay_ms(1000);
+  GPIOSetPinMode(interface, CH_A, GPIO7, INPUT);
+
+  if (interface == SC16IS750_PROTOCOL_I2C) {
+    printf("iodir : %02hhx\r\n", i2cm_read_reg(CH_A, SC16IS750_REG_IODIR));
+  } else if (interface == SC16IS750_PROTOCOL_SPI) {
+    printf("iodir : %02hhx\r\n", spim_read_reg(CH_A, SC16IS750_REG_IODIR));
   }
 
-  board_delay_ms(1000);
+  SetPinInterrupt(interface, CH_A, GPIO6);
+  // send_buf[0] = 0x01;
+  // i2cm_write_reg(CH_A, SC16IS750_REG_IOCONTROL, send_buf, 1);
+
   return;
+}
+
+void TestGPIO(uint8_t interface) {
+  int i;
+  while (1) {
+    // printf("Set High\r\n");
+    GPIOSetPinState(interface, CH_A, GPIO1, HIGH);
+    GPIOSetPinState(interface, CH_A, GPIO0, HIGH);
+
+    if (int_flag == 1) {
+      if (temp_iir == 0) {
+        IRQ_State(interface, CH_A);
+      }
+
+      if (gpio_a_int_flag == 1 || gpio_b_int_flag == 1) {
+        temp_gpio_state = GPIOGetPinState(interface, CH_A, GPIO6);
+        printf("752 GPIO6 Interrupt : %02hhx\r\n", temp_gpio_state);
+        gpio_a_int_flag = 0;
+        gpio_b_int_flag = 0;
+      }
+      temp_iir = 0;
+      temp_gpio_state = 0;
+      int_flag = 0;
+    }
+    board_delay_ms(100);
+
+    printf("752 GPIO[7] : %d\r\n", GPIOGetPinState(interface, CH_A, GPIO7));
+
+    board_delay_ms(500);
+
+    GPIOSetPinState(interface, CH_A, GPIO1, LOW);
+    GPIOSetPinState(interface, CH_A, GPIO0, LOW);
+
+    if (int_flag == 1) {
+      if (temp_iir == 0) {
+        IRQ_State(interface, CH_A);
+      }
+
+      // if(gpio_a_int_flag ==1 || gpio_b_int_flag == 1){
+      if (gpio_a_int_flag == 1) {
+        temp_gpio_state = GPIOGetPinState(interface, CH_A, GPIO6);
+        printf("752 GPIO6 Interrupt : %02hhx\r\n", temp_gpio_state);
+        gpio_a_int_flag = 0;
+        // gpio_b_int_flag=0;
+      }
+      temp_iir = 0;
+      temp_gpio_state = 0;
+      int_flag = 0;
+    }
+
+    board_delay_ms(100);
+    printf("752 GPIO[7] : %d\r\n", GPIOGetPinState(interface, CH_A, GPIO7));
+
+    board_delay_ms(1000);
+  }
 }
 
 void message_receive(uint8_t interface, uint8_t *mes, uint16_t wait) {
@@ -875,99 +967,6 @@ void send_cmd(uint8_t interface, uint8_t *cmd, uint16_t cmd_len) {
   return;
 }
 
-int16_t TestUART(uint8_t interface) {
-  printf("into %s-%d\r\n", __func__, __LINE__);
-  int8_t send_buf[64];
-
-  memset(send_buf, '\0', sizeof(send_buf));
-  sprintf(send_buf, "\r\n\r\n");
-  send_cmd(interface, send_buf, strlen(send_buf));
-
-  while (1) {
-    if (int_flag == 1) {
-      memset(resp_buf, '\0', sizeof(resp_buf));
-      memset(send_buf, '\0', sizeof(send_buf));
-      UART_ReadBytes(interface);
-      // printf("From Arduino UART : %s\r\n", resp_buf);
-      sprintf(send_buf, "Arduino UART : %s\r\n", resp_buf);
-      send_cmd(interface, send_buf, strlen(send_buf));
-    }
-    board_delay_ms(10);
-  }
-
-  return 0;
-}
-
-int16_t StartTestCMD(uint8_t interface) {
-  printf("into %s-%d\r\n", __func__, __LINE__);
-  int8_t send_buf[64];
-
-  // Clean cmd line
-  memset(send_buf, '\0', sizeof(send_buf));
-  sprintf(send_buf, "\r\n\r\n");
-  send_cmd(interface, send_buf, strlen(send_buf));
-  message_receive(interface, "\r\n\n#", 200);
-  //---------------------------------------
-  // Disable Echo
-  memset(send_buf, '\0', sizeof(send_buf));
-  sprintf(send_buf, AT_CMD_UART_ECHO_CTRL, WIFI_ECHO_DISABLE);
-  send_cmd(interface, send_buf, strlen(send_buf));
-  message_receive(interface, "\r\n\n#", 200);
-  //---------------------------------------
-  // Send AT
-  memset(send_buf, '\0', sizeof(send_buf));
-  sprintf(send_buf, AT_CMD);
-  send_cmd(interface, send_buf, strlen(send_buf));
-  message_receive(interface, "\r\n\n#", 200);
-  //---------------------------------------
-  // Show fw version
-  memset(send_buf, '\0', sizeof(send_buf));
-  sprintf(send_buf, AT_CMD_SHOW_FW_VER);
-  send_cmd(interface, send_buf, strlen(send_buf));
-  message_receive(interface, "\r\n\n#", 200);
-  //---------------------------------------
-  // UART Configuration
-  memset(send_buf, '\0', sizeof(send_buf));
-  sprintf(send_buf, AT_CMD_SHOW_UART_CONFIG);
-  send_cmd(interface, send_buf, strlen(send_buf));
-  message_receive(interface, "\r\n\n#", 200);
-  //---------------------------------------
-  // Wi-Fi Info
-  memset(send_buf, '\0', sizeof(send_buf));
-  sprintf(send_buf, AT_CMD_SHOW_WIFI_INFO);
-  send_cmd(interface, send_buf, strlen(send_buf));
-  message_receive(interface, "\r\n\n#", 500);
-
-  while (1) {
-    printf("set High\r\n");
-    GPIOSetPinState(interface, CH_A, GPIO0, HIGH);
-    GPIOSetPinState(interface, CH_A, GPIO1, HIGH);
-    GPIOSetPinState(interface, CH_A, GPIO2, HIGH);
-    GPIOSetPinState(interface, CH_A, GPIO5, HIGH);
-    GPIOSetPinState(interface, CH_A, GPIO6, HIGH);
-    GPIOSetPinState(interface, CH_A, GPIO7, HIGH);
-
-    // send_buf[0]=0xff;
-    // spim_write_reg(CH_A, SC16IS750_REG_IOSTATE, send_buf, 1);
-    board_delay_ms(3000);
-
-    printf("set Low\r\n");
-
-    GPIOSetPinState(interface, CH_A, GPIO0, LOW);
-    GPIOSetPinState(interface, CH_A, GPIO1, LOW);
-    GPIOSetPinState(interface, CH_A, GPIO2, LOW);
-    GPIOSetPinState(interface, CH_A, GPIO5, LOW);
-    GPIOSetPinState(interface, CH_A, GPIO6, LOW);
-    GPIOSetPinState(interface, CH_A, GPIO7, LOW);
-
-    // send_buf[0]=0x10;
-    // spim_write_reg(CH_A, SC16IS750_REG_IOSTATE, send_buf, 1);
-    board_delay_ms(3000);
-  }
-
-  return 0;
-}
-
 int16_t UartInit(uint8_t interface) {
   printf("into %s-%d\r\n", __func__, __LINE__);
   int8_t send_buf[64];
@@ -1007,18 +1006,19 @@ int16_t UartInit(uint8_t interface) {
 
   memset(send_buf, '\0', sizeof(send_buf));
   memset(read_buf, '\0', sizeof(read_buf));
-  // SetBaudrate(interface, CH_A, 115200);
-  SetBaudrate(interface, CH_A, 9600); // DFPlayer can only run under 9600
+
+  SetBaudrate(interface, CH_A,
+              9600); // DFPlayer must working under 9600 baud rate
   SetLine(interface, CH_A, 8, 0, 1);
 
-  // SetBaudrate(interface, CH_B, 115200);
-  // SetLine(interface, CH_B, 8, 0, 1);
+  SetBaudrate(interface, CH_B, 115200);
+  SetLine(interface, CH_B, 8, 0, 1);
 
   InterruptControl(interface, CH_A, SC16IS750_INT_RHR);
-  // InterruptControl(interface, CH_B, SC16IS750_INT_RHR);
+  InterruptControl(interface, CH_B, SC16IS750_INT_RHR);
 
   FIFOEnable(interface, CH_A, 1);
-  // FIFOEnable(interface, CH_B, 1);
+  FIFOEnable(interface, CH_B, 1);
 
   // FIFOSetTriggerLevel(1, 16);
 

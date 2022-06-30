@@ -1,7 +1,25 @@
 #ifndef _SC16IS750_H_
+
 #define _SC16IS750_H_
 
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include "embARC.h"
+#include "embARC_debug.h"
+#include "board_config.h"
+#include "arc_timer.h"
+#include "hardware_config.h"
+
+#include "hx_drv_iic_m.h"
+#include "hx_drv_iomux.h"
+#include "hx_drv_spi_m.h"
+#include "dw_spi.h"
+#include "dw_spi_hal.h"
+
 // Device Address
+
+int16_t hal_spim_write(uint8_t cs_number, uint8_t *data, int16_t data_len);
 
 int16_t i2cm_write_reg(uint8_t isChA, uint8_t reg_addr, int8_t *data,
                        int16_t data_len);
@@ -14,7 +32,6 @@ int16_t spim_write_reg(uint8_t isChA, uint8_t reg_addr, int8_t *data,
 uint8_t spim_read_reg(uint8_t isChA, uint8_t reg_addr);
 uint8_t spim_read_stream_reg(uint8_t isChA, uint8_t reg_addr, uint8_t *data_buf,
                              uint16_t data_len);
-void data_receive(uint8_t interface, uint8_t *mes, uint16_t wait);
 
 void HX_GPIOSetup();
 void IRQSetup();
@@ -31,14 +48,11 @@ void GPIOSetPinState(uint8_t interface, uint8_t isChA, uint8_t pin_number,
 uint8_t GPIOGetPinState(uint8_t interface, uint8_t isChA, uint8_t pin_number);
 void InitGPIOSetup(uint8_t interface);
 void TestGPIO(uint8_t interface);
-int16_t StartTestCMD(uint8_t interface);
-void send_cmd(uint8_t interface, uint8_t *cmd, uint16_t cmd_len);
+
 void IRQ_State(uint8_t interface, uint8_t isChA);
 void InterruptControl(uint8_t interface, uint8_t isChA, uint8_t int_ena);
 void SetPinInterrupt(uint8_t interface, uint8_t isChA, uint8_t pin_number);
 
-// int16_t StartTestCMD(uint8_t interface);
-int16_t UARTTest(uint8_t interface);
 int16_t UartInit(uint8_t interface);
 
 // A:VDD

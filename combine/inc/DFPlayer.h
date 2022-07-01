@@ -15,6 +15,7 @@
 #define _PLAY_PAUSE 0x0E
 #define _PLAY_KEEP 0x11
 #define _PLAY_Init 0x3F
+#define _PLAY_FOLD 0x0F
 
 #include "hx_drv_uart.h"
 //#include "hx_drv_spi_s.h"
@@ -22,8 +23,6 @@
 
 #include "DFPlayer.h"
 #include <stdlib.h>
-
-#include "hx_drv_uart.h"
 
 #include "SC16IS750_Bluepacket.h"
 
@@ -33,12 +32,13 @@
 struct __dfplayer {
   void (*play)();
   void (*playNum)(uint16_t song_num);
+  void (*playFoldNum)(uint8_t folder, uint16_t song_num);
   void (*playNext)();
   void (*playPrev)();
   void (*pause)();
   void (*set_vol)(uint8_t volume);
   void (*sendCmd)(uint8_t, uint8_t, uint8_t);
-  bool (*isBusy)();
+  bool (*isBusy)(uint8_t busy_pin);
 };
 typedef struct __dfplayer dfplayer;
 
@@ -49,6 +49,7 @@ void playNext();
 void playPrev();
 void set_vol(uint8_t vol);
 void playNum(uint16_t song_num);
+void playFoldNum(uint8_t folder, uint16_t song_num);
 bool playerBusy(uint8_t busy_pin);
 dfplayer Init_DFPlayer();
 #endif

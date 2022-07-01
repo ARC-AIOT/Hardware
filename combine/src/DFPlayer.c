@@ -67,8 +67,8 @@ void playNum(uint16_t song_num) {
 void set_vol(uint8_t vol) { execute_cmd(_SET_VOL, 0, ((vol - 1) & 0x1f)); }
 
 dfplayer Init_DFPlayer() {
-  dfplayer dfp = {play,  playNum, playNext,   playPrev,
-                  pause, set_vol, execute_cmd};
+  dfplayer dfp = {play,  playNum, playNext,    playPrev,
+                  pause, set_vol, execute_cmd, playerBusy};
   execute_cmd(_PLAY_Init, 0, 0);
   board_delay_ms(500);
   return dfp;

@@ -23,6 +23,7 @@ struct __dfplayer {
   void (*pause)();
   void (*set_vol)(uint8_t volume);
   void (*sendCmd)(uint8_t, uint8_t, uint8_t);
+  bool (*isBusy)();
 };
 typedef struct __dfplayer dfplayer;
 

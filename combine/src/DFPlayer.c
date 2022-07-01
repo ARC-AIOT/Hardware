@@ -1,22 +1,5 @@
 #include "DFPlayer.h"
 
-#define _Start_Byte 0x7E
-#define _Version_Byte 0xFF
-#define _Command_Length 0x06
-#define _End_Byte 0xEF
-#define _Acknowledge 0x00
-
-#define _PLAY_NEXT 0x01
-#define _PLAY_PREV 0x02
-#define _PLAY_NUM 0x03
-#define _SET_VOL 0x06
-#define _PLAY_START 0x0D
-#define _PLAY_PAUSE 0x0E
-#define _PLAY_KEEP 0x11
-#define _PLAY_Init 0x3F
-
-#define BUSY_PIN 1 // Busy pin is set to be GPIO1
-
 void execute_cmd(uint8_t CMD, uint8_t Par1, uint8_t Par2) {
   // calcute checksum (2 bytes)
   uint16_t checksum =
@@ -36,8 +19,8 @@ void execute_cmd(uint8_t CMD, uint8_t Par1, uint8_t Par2) {
 // Because in this lib we didn't use HX_GPIOSetup() to setup
 // GPIO pin, which would cause undefined behaviou if we try
 // to call the function
-bool playerBusy() {
-  return GPIOGetPinState(SC16IS750_PROTOCOL_SPI, CH_A, BUSY_PIN) ^ 1;
+bool playerBusy(uint8_t busy_pin) {
+  return GPIOGetPinState(SC16IS750_PROTOCOL_SPI, CH_A, busy_pin) ^ 1;
 }
 
 void pause() { execute_cmd(_PLAY_PAUSE, 0, 0); }

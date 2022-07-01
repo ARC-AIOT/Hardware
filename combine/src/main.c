@@ -16,22 +16,40 @@
 
 // For JoyStick
 #include "joystick.h"
-#include "SC16IS750_Bluepacket.h"
 // For JoyStick
+
+// For DFPlayer
+#include "DFPlayer.h"
+// For DFPlayer
+
+// For DFPlayer and JoyStick
+#include "SC16IS750_Bluepacket.h"
+// For DFPlayer and JoyStick
 
 #define ADC_3021_DEV_ADDR 0x4f
 #define REG_ADDR 0x7f
 
 int main(void) {
-  printf("into %s-%d\r\n", __func__, __LINE__);
-  uint8_t rw_buf[4];
-  memset(rw_buf, '\0', sizeof(rw_buf));
-  // Setting GPIO for joystick btn
+  // Setting GPIO for joystick btn and DFPlayer
   HX_GPIOSetup();
   IRQSetup();
-  UartInit(SC16IS750_PROTOCOL_SPI);
+
+  UartInit(SC16IS750_PROTOCOL_SPI); // Make sure CH_A of funt UartInit in
+                                    // SC16IS750_Bluepacket.c has been set up as
+                                    // 9600 baud rate, which is DFPlayer's
+                                    // working baud rate
+
   GPIOSetPinMode(SC16IS750_PROTOCOL_SPI, CH_A, GPIO5, INPUT);
-  // Setting GPIO for joystick btn
+  // Setting GPIO for joystick btn and DFPlayer
+
+  // set up dfplayer
+  dfplayer Player = Init_DFPlayer(); //　Construct an instance of obj dfplayer
+  Player.set_vol(5);
+  board_delay_ms(500);
+  Player.play();
+  board_delay_ms(500);
+  int sound_track = 1;
+  // set up dfplayer
 
   // Setting IIC for OLED
   DEV_IIC *iic1_ptr;
@@ -40,17 +58,30 @@ int main(void) {
   OLED_Init();
   OLED_Clear();
   OLED_SetCursor(0, 0);
+  char str_buf[100] = {0}; // String buffer for OLED_Display;
   // Setting IIC for OLED
-  char str_buf[50] = {0};
+
+  sprintf(str_buf, "now playing: %d", sound_track);
+  OLED_DisplayString_Flush(str_buf);
+  printf("now playing: %d\n", sound_track);
+
   while (1) {
-    OLED_SetCursor(0, 0);
-    sprintf(str_buf, "stick in %s", show_joystick_state());
-    OLED_DisplayString_Flush(str_buf);
-    board_delay_ms(10);
-    OLED_SetCursor(1, 0);
-    sprintf(str_buf, "stick btn : %d\n", get_joystick_btn(GPIO5));
-    OLED_DisplayString_Flush(str_buf);
-    board_delay_ms(100);
+
+    int i = get_joystick_state();
+    if (i) {
+      sound_track += i;
+      if (sound_track == 0)
+        sound_track = 4;
+      if (sound_track > 4)
+        sound_track &= 0x03;
+
+      Player.playNum(sound_track);
+      board_delay_ms(500);
+      sprintf(str_buf, "now playing: %d", sound_track);
+      OLED_SetCursor(0, 0);
+      OLED_DisplayString_Flush(str_buf);
+      printf("now playing: %d\n", sound_track);
+    }
   }
   return 0;
 }

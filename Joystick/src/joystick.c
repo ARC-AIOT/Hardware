@@ -10,12 +10,12 @@ uint8_t joy_stick_VRY_addr = ADC_3021_DEV_ADDR;
 int get_joystick_state() {
   memset(rw_buf, '\0', sizeof(rw_buf));
   hx_drv_i2cm_read_data(SS_IIC_0_ID, joy_stick_VRY_addr, rw_buf, 2);
-  printf("cur read: 0x%hx %hx\n", rw_buf[0], rw_buf[1]);
+  // printf("cur read: 0x%hx %hx\n", rw_buf[0], rw_buf[1]);
   switch ((int)rw_buf[0]) {
   case Down:
-    return -1;
-  case Up:
     return 1;
+  case Up:
+    return -1;
   case Idle:
   default:
     return 0;
@@ -27,9 +27,9 @@ char *show_joystick_state() {
   switch (state) {
   case 0:
     return "Idle";
-  case 1:
-    return "Up";
   case -1:
+    return "Up";
+  case 1:
   default:
     return "Down";
   }

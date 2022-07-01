@@ -18,8 +18,8 @@
 struct __dfplayer {
   void (*play)();
   void (*playNum)(uint16_t song_num);
-  void (*next)();
-  void (*prev)();
+  void (*playNext)();
+  void (*playPrev)();
   void (*pause)();
   void (*set_vol)(uint8_t volume);
   void (*sendCmd)(uint8_t, uint8_t, uint8_t);
@@ -33,5 +33,6 @@ void playNext();
 void playPrev();
 void set_vol(uint8_t vol);
 void playNum(uint16_t song_num);
+bool playerBusy();
 dfplayer Init_DFPlayer();
 #endif

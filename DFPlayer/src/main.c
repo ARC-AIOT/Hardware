@@ -36,19 +36,19 @@ int main(void) {
   dfplayer Player = Init_DFPlayer();
   Player.set_vol(5);
   board_delay_ms(500);
-  Player.play();
+  if (!playerBusy())
+    Player.play();
   board_delay_ms(500);
   int i = 1;
   while (1) {
-    printf("%d PP state %d\n", i,
-           GPIOGetPinState(SC16IS750_PROTOCOL_SPI, CH_A, GPIO1));
+    printf("%d PP state %d\n", i, playerBusy()); // PP: Player Port
     board_delay_ms(1000);
     i++;
     if (i % 25 == 0)
       if (i & 1)
-        Player.pause();
+        Player.playNext();
       else
-        Player.play();
+        Player.playPrev();
   }
 
   return 0;

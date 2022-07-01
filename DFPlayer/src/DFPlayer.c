@@ -15,6 +15,8 @@
 #define _PLAY_KEEP 0x11
 #define _PLAY_Init 0x3F
 
+#define BUSY_PIN 1 // Busy pin is set to be GPIO1
+
 void execute_cmd(uint8_t CMD, uint8_t Par1, uint8_t Par2) {
   // calcute checksum (2 bytes)
   uint16_t checksum =
@@ -28,6 +30,14 @@ void execute_cmd(uint8_t CMD, uint8_t Par1, uint8_t Par2) {
 
   // send cmd to module
   send_cmd(SC16IS750_PROTOCOL_SPI, Command_line, 10);
+}
+
+// The function playerBusy SHOULD be called ONLY in main.c
+// Because in this lib we didn't use HX_GPIOSetup() to setup
+// GPIO pin, which would cause undefined behaviou if we try
+// to call the function
+bool playerBusy() {
+  return GPIOGetPinState(SC16IS750_PROTOCOL_SPI, CH_A, BUSY_PIN) ^ 1;
 }
 
 void pause() { execute_cmd(_PLAY_PAUSE, 0, 0); }

@@ -36,7 +36,7 @@ char *show_joystick_state() {
 }
 
 bool get_joystick_btn(uint8_t joy_stick_btn_pin) {
-  return GPIOGetPinState(SC16IS750_PROTOCOL_SPI, CH_A, GPIO5) ^ 1;
+  return GPIOGetPinState(SC16IS750_PROTOCOL_SPI, CH_A, joy_stick_btn_pin) ^ 1;
   // btn's volt is high if btn is NOT pressed
   // By adding xor 1, the function will return 0 if btn is NOT pressed
 }

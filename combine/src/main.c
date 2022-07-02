@@ -43,6 +43,7 @@
 #include "synopsys_sdk_camera_drv.h"
 #include "text_detection_tools.h"
 // For text detection
+#include "Ultrasonic.h"
 
 #define ADC_3021_DEV_ADDR 0x4f
 #define REG_ADDR 0x7f
@@ -59,7 +60,7 @@ dfplayer Player;
 
 void mainMenu();
 void initMainMenu();
-bool dectected = false;
+bool detected = false;
 
 void set_Hour_Min(int *hour, int *min);
 void set_day(int year, int month, int *day);
@@ -72,13 +73,17 @@ void medMonitor();
 void initSelMenu();
 void nextTimeSelMenu();
 void textDetect();
+void showNextTimeToEat();
+void readNextTimeToEat();
+void getNextTime();
+void waitNextTimeToEat();
 
 extern uint32_t g_wdma2_baseaddr;
-int8_t input_buf[32*640] = {0};
+int8_t input_buf[32 * 640] = {0};
 uint32_t arr_std[480] = {0};
 uint32_t idx[11] = {0};
 uint8_t image[640 * 480] = {0};
-uint8_t output_img[32*640] = {0};
+uint8_t output_img[32 * 640] = {0};
 uint8_t test[10] = {0};
 
 int main(void) {
@@ -94,11 +99,14 @@ int main(void) {
   GPIOSetPinMode(SC16IS750_PROTOCOL_SPI, CH_A, BUSY_PIN, INPUT);
   GPIOSetPinMode(SC16IS750_PROTOCOL_SPI, CH_A, JoyBtn, INPUT);
   GPIOSetPinMode(SC16IS750_PROTOCOL_SPI, CH_A, JoyVRx, INPUT);
-  // Setting GPIO for joystick and DFPlayer
+
+  init_ultra();
+
+  // Setting GPIO for joystick, DFPlayer, and Ultrasonic
 
   // set up dfplayer
   Player = Init_DFPlayer(); //　Construct an instance of obj dfplayer
-  Player.set_vol(15);
+  Player.set_vol(5);
   board_delay_ms(100);
   // set up dfplayer
 
@@ -113,45 +121,6 @@ int main(void) {
 
   mainMenu();
 
-  /*
-          sprintf(str_buf, "now playing: %d", sound_track);
-          OLED_DisplayString_Flush(str_buf);
-          printf("now playing: %d\n", sound_track);
-          while (1) {
-            int i = get_joystick_state();
-            bool playBusy = Player.isBusy(BUSY_PIN);
-            if (get_joystick_btn(GPIO5)) {
-              if (playBusy)
-                Player.pause();
-              else
-                Player.play();
-            }
-            if (i) {
-              sound_track += i;
-              if (sound_track == 0)
-                sound_track = 4;
-              if (sound_track > 4)
-                sound_track &= 0x03;
-              Player.playNum(sound_track);
-              board_delay_ms(500);
-              sprintf(str_buf, "now playing: %d", sound_track);
-              OLED_SetCursor(0, 0);
-              OLED_DisplayString_Flush(str_buf);
-              printf("now playing: %d\n", sound_track);
-            }
-            OLED_SetCursor(1, 0);
-            if (playBusy) {
-              sprintf(str_buf, "now status: play");
-              OLED_DisplayString_Flush(str_buf);
-              printf("now status: play\n");
-            } else {
-              sprintf(str_buf, "now status: pause");
-              OLED_DisplayString_Flush(str_buf);
-              printf("now status: pause\n");
-            }
-            board_delay_ms(50);
-          }
-  */
   return 0;
 }
 
@@ -193,16 +162,13 @@ void mainMenu() {
     OLED_SetCursor(optionPtr + 2, 0); // First 2 line is reserved for showtime()
     sprintf(str_buf, ">");
     OLED_DisplayString(str_buf);
-
+    if (haveNextTime &&
+        (!detect_obj(10, 6))) // The time have setted and med is removed
+      medMonitor();
     if (get_joystick_btn(JoyBtn)) {
       OLED_Clear();
       showTime();
-      /*
-      OLED_SetCursor(2, 0);
-      sprintf(str_buf, "You select:");
-      OLED_DisplayString_Flush(str_buf);
-      OLED_SetCursor(3, 0);
-      */
+
       switch (optionPtr) {
       case O1:
         timeSetMenu();
@@ -211,7 +177,20 @@ void mainMenu() {
         textDetect();
         break;
       case O3:
-        sprintf(str_buf, "When to take med");
+        if (haveNextTime) {
+          showNextTimeToEat();
+          readNextTimeToEat();
+        } else {
+          OLED_Clear();
+          OLED_SetCursor(3, 0);
+          sprintf(str_buf, "Please go to");
+          OLED_DisplayString_Flush(str_buf);
+          OLED_SetCursor(4, 0);
+          sprintf(str_buf, "text detect first");
+          OLED_DisplayString_Flush(str_buf);
+          Player.playFoldNum(4, 3); // 003_請先進行文字辨識.wav
+          board_delay_ms(2500);
+        }
         break;
       default:
         break;
@@ -233,18 +212,17 @@ void mainMenu() {
 
 // Text detect functions
 void textDetect() {
-  enum dectectFreq { F1 = 1, F2, F3, F4 };
-  enum dectectFreq freq = F1;
-  // enum nextTime { T1 = 1, T2, T3, T4 };
-  // enum nextTime nT = T1;
-  
+  enum detectFreq { F1 = 1, F2, F3, F4, F5 };
+  enum detectFreq freq = F1;
+
   synopsys_camera_start_capture();
-  uint8_t * img_ptr;
+  uint8_t *img_ptr;
   uint32_t img_width = 640;
   uint32_t img_height = 480;
-  img_ptr = (uint8_t *) g_wdma2_baseaddr;
+  img_ptr = (uint8_t *)g_wdma2_baseaddr;
 
-  synopsys_camera_down_scaling(img_ptr, img_width, img_height, &image[0], img_width, img_height);
+  synopsys_camera_down_scaling(img_ptr, img_width, img_height, &image[0],
+                               img_width, img_height);
   /*
   uint32_t x, y;
   for(x = 0; x < 480; x++) {
@@ -253,22 +231,24 @@ void textDetect() {
     }
     printf("\n");
   }*/
-  freq = text_detection(&image[0], &output_img[0], &arr_std[0], &idx[0], &input_buf[0], &test[0]);
+  freq = text_detection(&image[0], &output_img[0], &arr_std[0], &idx[0],
+                        &input_buf[0], &test[0]);
   printf("freq = %d\n", freq);
   int i;
-  for(i = 0; i < 10; i++) {
+  for (i = 0; i < 10; i++) {
     printf("%d ", idx[i]);
   }
   printf("\n");
-  for(i = 0; i < 10; i++) {
+  for (i = 0; i < 10; i++) {
     printf("%d ", test[i]);
   }
   printf("\n");
-  if(freq == 0) {
-    
-    freq = 2;
+  if (freq == 0) {
+    Player.playFoldNum(1, 5); //請重新辨識
+    haveNextTime = false;
+    board_delay_ms(4000);
+    return;
   }
-  printf("play fold1 F1\n");
   // Player.playFoldNum(1, F1);
   Player.playFoldNum(1, freq);
   board_delay_ms(4000);
@@ -279,25 +259,7 @@ void textDetect() {
   F3: 0003_辨識為_每日三次，飯後服用_.wav
   F4: 0004_辨識為_每日四次，飯後、睡前服用_.wav
   */
-  OLED_Clear();
-  showTime();
-  OLED_SetCursor(2, 0);
-  sprintf(str_buf, "Put med into box");
-  OLED_DisplayString_Flush(str_buf);
-  Player.playFoldNum(4, 1);
-  board_delay_ms(2000);
 
-  /* 0004_Instruction/
-  0001_請將藥袋放入盒內.wav
-  */
-  /* Wait for UltraSensor funct
-  while(1){
-    if(UltraSensor_detect())
-      break;
-    while (Player.isBusy(BUSY_PIN)) {}
-    playFoldNum(4, 1);
-  }
-  */
   nextTimeSelMenu();
 }
 
@@ -307,7 +269,7 @@ void nextTimeSelMenu() {
   printf("Into another funct\n");
 
   Player.playFoldNum(4, 2);
-  board_delay_ms(2000);
+  board_delay_ms(2500);
 
   /* 0004_Instruction/
   0002_請選擇下次吃藥時間.wav
@@ -358,7 +320,7 @@ void nextTimeSelMenu() {
   OLED_DisplayString(str_buf);
 
   Player.playFoldNum(2, nT);
-  board_delay_ms(2000);
+  board_delay_ms(2500);
 
   /* 0002_next_time/
   T1: 0001_下次吃藥時間早上，飯後服用.wav
@@ -369,7 +331,19 @@ void nextTimeSelMenu() {
   now_sec = begin_sec + (time_t)((clock() - clk_cnt_time) / CLOCKS_PER_SEC);
   ti = *(gmtime(&now_sec));
   lastTimeTakeMed = ti;
+  getNextTime();
   haveNextTime = true;
+  OLED_Clear();
+  showTime();
+  OLED_SetCursor(2, 0);
+  sprintf(str_buf, "Put med into box");
+  OLED_DisplayString_Flush(str_buf);
+  while (1) {
+    if (detect_obj(5, 6))
+      break;
+    Player.playFoldNum(4, 1);
+    board_delay_ms(3000);
+  }
 }
 
 void initSelMenu() {
@@ -392,36 +366,83 @@ void initSelMenu() {
   OLED_DisplayString(str_buf);
 }
 
+time_t tmpNextSec;
+struct tm tmpNextTm;
+
 // Medicine monitor funct
 void medMonitor() {
   if (!haveNextTime)
     return;
   enum nextTime { T1 = 1, T2, T3, T4 };
   enum nextTime nT = T1;
-  /*
-  UltraSonic dectect med removed...
-  */
-  if (difftime(mktime(&ti), mktime(&lastTimeTakeMed)) <= 4 * 60 * 60) {
-    OLED_Clear();
-    showTime();
-    OLED_SetCursor(2, 0);
-    sprintf(str_buf, "You have taken medicine before!!");
-    OLED_DisplayString_Flush(str_buf);
-    playFoldNum(3, 1);
-    board_delay_ms(2000);
-    playFoldNum(3, 2);
-    board_delay_ms(2000);
+
+  if (mktime(&ti) < tmpNextSec) {
+    waitNextTimeToEat();
   } else {
     nextTimeSelMenu();
-    /* Wait for UltraSensor funct
-    while(1){
-      if(UltraSensor_detect())
-        break;
-      playFoldNum(4, 1);
-      board_delay_ms(2000);
-    }
-    */
   }
+}
+
+void getNextTime() {
+  tmpNextSec = mktime(&lastTimeTakeMed) + 4 * 60 * 60;
+  tmpNextTm = *(gmtime(&tmpNextSec));
+}
+
+void readNextTimeToEat() {
+  Player.playFoldNum(3, 3); // 你下次的吃藥時間應在
+  board_delay_ms(2500);
+  if (tmpNextTm.tm_hour < 12)
+    Player.playFoldNum(7, 1); // 上午
+  else if (tmpNextTm.tm_hour == 12)
+    Player.playFoldNum(7, 2); // 中午
+  else if (tmpNextTm.tm_hour < 12)
+    Player.playFoldNum(7, 3); // 下午
+  board_delay_ms(900);
+  int Hr = tmpNextTm.tm_hour;
+  if (Hr > 12)
+    Hr -= 12;
+  if (Hr == 0)
+    Hr = 12;
+  Player.playFoldNum(5, Hr);
+  board_delay_ms(900);
+  if (tmpNextTm.tm_min > 10) {
+    Player.playFoldNum(8, (tmpNextTm.tm_min / 10));
+    board_delay_ms(900);
+    if (tmpNextTm.tm_min % 10 == 0) {
+      Player.playFoldNum(8, 6);
+      board_delay_ms(900);
+    }
+  }
+  if (tmpNextTm.tm_min % 10)
+    Player.playFoldNum(6, tmpNextTm.tm_min % 10);
+  board_delay_ms(900);
+}
+
+void showNextTimeToEat() {
+  OLED_Clear();
+  showTime();
+  OLED_SetCursor(2, 0);
+  sprintf(str_buf, "You have already");
+  OLED_DisplayString_Flush(str_buf);
+  OLED_SetCursor(3, 0);
+  sprintf(str_buf, "taken med before");
+  OLED_DisplayString_Flush(str_buf);
+  OLED_SetCursor(4, 0);
+
+  sprintf(str_buf, "Next time to take:");
+
+  OLED_DisplayString_Flush(str_buf);
+  OLED_SetCursor(5, 0);
+  sprintf(str_buf, "%02d:%02d", tmpNextTm.tm_hour, tmpNextTm.tm_min);
+  OLED_DisplayString_Flush(str_buf);
+}
+
+void waitNextTimeToEat() {
+  Player.playFoldNum(3, 1); // 你已經吃過藥了
+  board_delay_ms(2500);
+  readNextTimeToEat();
+  Player.playFoldNum(3, 2);
+  board_delay_ms(2500);
 }
 
 // Time set functions

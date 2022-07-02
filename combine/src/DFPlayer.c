@@ -1,5 +1,5 @@
 #include "DFPlayer.h"
-void execute_cmd(uint8_t CMD, uint8_t Par1, uint8_t Par2) {
+void execute_cmd(uint8_t CMD, char Par1, char Par2) {
   // calcute checksum (2 bytes)
   uint16_t checksum =
       -(_Version_Byte + _Command_Length + CMD + _Acknowledge + Par1 + Par2);
@@ -46,7 +46,7 @@ void playNum(uint16_t song_num) {
   board_delay_ms(100);
 }
 
-void playFoldNum(uint8_t folder, uint16_t song_num) {
+void playFoldNum(char folder, char song_num) {
   execute_cmd(_PLAY_FOLD, folder, song_num);
   board_delay_ms(100);
 }

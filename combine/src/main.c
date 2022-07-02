@@ -39,6 +39,11 @@
 #include "SC16IS750_Bluepacket.h"
 // For DFPlayer and JoyStick
 
+// For text detection
+#include "synopsys_sdk_camera_drv.h"
+#include "text_detection_tools.h"
+// For text detection
+
 #define ADC_3021_DEV_ADDR 0x4f
 #define REG_ADDR 0x7f
 
@@ -68,7 +73,16 @@ void initSelMenu();
 void nextTimeSelMenu();
 void textDetect();
 
+extern uint32_t g_wdma2_baseaddr;
+int8_t input_buf[32*640] = {0};
+uint32_t arr_std[480] = {0};
+uint32_t idx[11] = {0};
+uint8_t image[640 * 480] = {0};
+uint8_t output_img[32*640] = {0};
+uint8_t test[10] = {0};
+
 int main(void) {
+  tflitemicro_algo_init();
   // Setting GPIO for joystick btn and DFPlayer
   HX_GPIOSetup();
   IRQSetup();
@@ -223,12 +237,40 @@ void textDetect() {
   enum dectectFreq freq = F1;
   // enum nextTime { T1 = 1, T2, T3, T4 };
   // enum nextTime nT = T1;
+  
+  synopsys_camera_start_capture();
+  uint8_t * img_ptr;
+  uint32_t img_width = 640;
+  uint32_t img_height = 480;
+  img_ptr = (uint8_t *) g_wdma2_baseaddr;
+
+  synopsys_camera_down_scaling(img_ptr, img_width, img_height, &image[0], img_width, img_height);
   /*
-  freq = Some_AI_Detect_funct();
-  */
+  uint32_t x, y;
+  for(x = 0; x < 480; x++) {
+    for(y = 0; y < 640; y++) {
+      printf("%d ", image[x*480+y]);
+    }
+    printf("\n");
+  }*/
+  freq = text_detection(&image[0], &output_img[0], &arr_std[0], &idx[0], &input_buf[0], &test[0]);
+  printf("freq = %d\n", freq);
+  int i;
+  for(i = 0; i < 10; i++) {
+    printf("%d ", idx[i]);
+  }
+  printf("\n");
+  for(i = 0; i < 10; i++) {
+    printf("%d ", test[i]);
+  }
+  printf("\n");
+  if(freq == 0) {
+    
+    freq = 2;
+  }
   printf("play fold1 F1\n");
   // Player.playFoldNum(1, F1);
-  Player.playFoldNum(1, F1);
+  Player.playFoldNum(1, freq);
   board_delay_ms(4000);
 
   /* 01/

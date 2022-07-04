@@ -70,7 +70,7 @@ Upload the image file to the board, press the rst btn and enjoy
 * When to take med:
     Show and read out when you should take medicine next time  
 
-**Mind:**
+**Mind:**   
     One should setup system time before using text detect to ensure the system work properly.  
 
 ### Main menu
@@ -242,13 +242,18 @@ You can back to menu by move joystick left after all.
 |                     |       |  After dinner       |       |                     |       |                     |
 |                     |       |  Before sleep       |       |                     |       |<- back              |
 +----------+----------+       +---------------------+       +---------------------+       +----------+----------+
-           ^                  (Play the detect result)       (Play the sel by user)                  |(Keeping play  
+           ^                  (Play the detect result)       (Play the sel by user)                  |(Keeping playing 
            |                                                                                         |"put med into box")
            |                                                                                         |
            +-----------------------------------------------------------------------------------------+
                                                 Stick left
 * Flow diagram if detect success
 ```
+**Mind:**  
+Mind that once you use the detect text function successfully, HC-SR04 will monitor if you move the 
+medicine bag ceaselessly.  
+Once you were caught, the device will start Keeping playing audio "Put med into box" over and over again till you put back the bag.
+
 * When to take med  
 There will be two situation:  
 1. You haven't use detect text before or the nearest time you FAILED to detect text.  

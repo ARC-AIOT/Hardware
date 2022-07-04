@@ -53,7 +53,7 @@ time_t begin_sec, now_sec;
 clock_t clk_cnt_time; // The clk cnt time will be set to zero after every time
                       // the time is set
 struct tm ti;
-struct tm lastTimeTakeMed;
+// struct tm lastTimeTakeMed;
 bool haveNextTime = false;
 
 dfplayer Player;
@@ -75,7 +75,7 @@ void nextTimeSelMenu();
 void textDetect();
 void showNextTimeToEat();
 void readNextTimeToEat();
-void getNextTime();
+void getNextTime(int);
 void waitNextTimeToEat();
 
 extern uint32_t g_wdma2_baseaddr;
@@ -84,9 +84,10 @@ uint32_t arr_std[480] = {0};
 uint32_t idx[11] = {0};
 uint8_t image[640 * 480] = {0};
 uint8_t output_img[32 * 640] = {0};
-uint8_t test[10] = {0};
+int test[10] = {0};
 
 int main(void) {
+  synopsys_camera_init();
   tflitemicro_algo_init();
   // Setting GPIO for joystick btn and DFPlayer
   HX_GPIOSetup();
@@ -106,7 +107,7 @@ int main(void) {
 
   // set up dfplayer
   Player = Init_DFPlayer(); //　Construct an instance of obj dfplayer
-  Player.set_vol(5);
+  Player.set_vol(15);
   board_delay_ms(100);
   // set up dfplayer
 
@@ -216,6 +217,7 @@ void textDetect() {
   enum detectFreq freq = F1;
 
   synopsys_camera_start_capture();
+  board_delay_ms(100);
   uint8_t *img_ptr;
   uint32_t img_width = 640;
   uint32_t img_height = 480;
@@ -223,14 +225,7 @@ void textDetect() {
 
   synopsys_camera_down_scaling(img_ptr, img_width, img_height, &image[0],
                                img_width, img_height);
-  /*
-  uint32_t x, y;
-  for(x = 0; x < 480; x++) {
-    for(y = 0; y < 640; y++) {
-      printf("%d ", image[x*480+y]);
-    }
-    printf("\n");
-  }*/
+
   freq = text_detection(&image[0], &output_img[0], &arr_std[0], &idx[0],
                         &input_buf[0], &test[0]);
   printf("freq = %d\n", freq);
@@ -249,16 +244,8 @@ void textDetect() {
     board_delay_ms(4000);
     return;
   }
-  // Player.playFoldNum(1, F1);
   Player.playFoldNum(1, freq);
   board_delay_ms(4000);
-
-  /* 01/
-  F1: 0001_辨識為_每日一次，飯後服用_wav;
-  F2: 0002_辨識為_每日兩次，飯後服用_.wav
-  F3: 0003_辨識為_每日三次，飯後服用_.wav
-  F4: 0004_辨識為_每日四次，飯後、睡前服用_.wav
-  */
 
   nextTimeSelMenu();
 }
@@ -266,7 +253,6 @@ void textDetect() {
 void nextTimeSelMenu() {
   enum nextTime { T1 = 1, T2, T3, T4 };
   enum nextTime nT = T1;
-  printf("Into another funct\n");
 
   Player.playFoldNum(4, 2);
   board_delay_ms(2500);
@@ -330,8 +316,8 @@ void nextTimeSelMenu() {
   */
   now_sec = begin_sec + (time_t)((clock() - clk_cnt_time) / CLOCKS_PER_SEC);
   ti = *(gmtime(&now_sec));
-  lastTimeTakeMed = ti;
-  getNextTime();
+  // lastTimeTakeMed = ti;
+  getNextTime(nT);
   haveNextTime = true;
   OLED_Clear();
   showTime();
@@ -383,8 +369,32 @@ void medMonitor() {
   }
 }
 
-void getNextTime() {
-  tmpNextSec = mktime(&lastTimeTakeMed) + 4 * 60 * 60;
+void getNextTime(int nT) {
+  struct tm tmpTm;
+  tmpTm = ti;
+  switch (nT) {
+  case 1:
+    tmpTm.tm_hour = 8;
+    tmpTm.tm_min = 30;
+    tmpTm.tm_sec = 0;
+    break;
+  case 2:
+    tmpTm.tm_hour = 12;
+    tmpTm.tm_min = 0;
+    tmpTm.tm_sec = 0;
+    break;
+  case 3:
+    tmpTm.tm_hour = 18;
+    tmpTm.tm_min = 0;
+    tmpTm.tm_sec = 0;
+    break;
+  case 4:
+    tmpTm.tm_hour = 22;
+    tmpTm.tm_min = 30;
+    tmpTm.tm_sec = 0;
+    break;
+  }
+  tmpNextSec = mktime(&tmpTm);
   tmpNextTm = *(gmtime(&tmpNextSec));
 }
 
@@ -395,7 +405,7 @@ void readNextTimeToEat() {
     Player.playFoldNum(7, 1); // 上午
   else if (tmpNextTm.tm_hour == 12)
     Player.playFoldNum(7, 2); // 中午
-  else if (tmpNextTm.tm_hour < 12)
+  else
     Player.playFoldNum(7, 3); // 下午
   board_delay_ms(900);
   int Hr = tmpNextTm.tm_hour;
@@ -408,13 +418,19 @@ void readNextTimeToEat() {
   if (tmpNextTm.tm_min > 10) {
     Player.playFoldNum(8, (tmpNextTm.tm_min / 10));
     board_delay_ms(900);
-    if (tmpNextTm.tm_min % 10 == 0) {
+    if (tmpNextTm.tm_min % 10 == 0)
       Player.playFoldNum(8, 6);
-      board_delay_ms(900);
-    }
-  }
-  if (tmpNextTm.tm_min % 10)
+    else
+      Player.playFoldNum(6, tmpNextTm.tm_min % 10);
+    board_delay_ms(900);
+
+  } else if (tmpNextTm.tm_min == 10) {
+    Player.playFoldNum(6, 10);
+  } else {
+    Player.playFoldNum(6, 11);
+    board_delay_ms(900);
     Player.playFoldNum(6, tmpNextTm.tm_min % 10);
+  }
   board_delay_ms(900);
 }
 
@@ -506,7 +522,6 @@ void timeSetMenu() {
 
 void set_year(int *year) {
   OLED_Clear();
-  *year = 2022;
   while (1) {
     OLED_SetCursor(2, 0);
     sprintf(str_buf, "Years:");
@@ -525,7 +540,6 @@ void set_year(int *year) {
 
 void set_month(int *month) {
   OLED_Clear();
-  *month = 1;
   while (1) {
     OLED_SetCursor(2, 0);
     sprintf(str_buf, "Month:");
@@ -547,7 +561,6 @@ void set_month(int *month) {
 
 void set_day(int year, int month, int *day) {
   OLED_Clear();
-  *day = 1;
   bool isSmall = (month == 4) || (month == 6) || (month == 9) || (month == 11);
   bool isLeap = (((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0));
   while (1) {
@@ -588,8 +601,6 @@ void set_day(int year, int month, int *day) {
 }
 
 void set_Hour_Min(int *hour, int *min) {
-  *hour = 0;
-  *min = 0;
   OLED_Clear();
   OLED_SetCursor(2, 0);
   sprintf(str_buf, "Time:");

@@ -20,10 +20,10 @@ int detect_distance() {
   while (GPIOGetPinState(SC16IS750_PROTOCOL_SPI, CH_A, EchoPin) == HIGH)
     endRec = board_get_cur_us();
   duration = endRec - startRec;
-  printf("start:%llu end:%llu duration: %llu\n", startRec, endRec, duration);
+  // printf("start:%llu end:%llu duration: %llu\n", startRec, endRec, duration);
   cm = ((double)duration) / 2.;
   cm = cm * 0.034;
-  printf("%d cm\n", (int)cm);
+  // printf("%d cm\n", (int)cm);
   return (int)cm;
 }
 

@@ -68,13 +68,13 @@ Upload the image file to the board, press the rst btn and enjoy
 * text detect:
     Using camera to recognize proper frequency to take medicine
 * When to take med:
-    Show and read out when you should take medicine next time
+    Show and read out when you should take medicine next time  
 
 **Mind:**
-    One should setup system time before using text detect to ensure the system work properly.
+    One should setup system time before using text detect to ensure the system work properly.  
 
 ### Main menu
-You should see the menu from OLED like this once you open the device:
+You should see the menu from OLED like this once you open the device:  
 ```
 +---------------------+
 |Sat Jan 1 2022       |
@@ -86,7 +86,7 @@ You should see the menu from OLED like this once you open the device:
 |                     |
 +---------------------+
 ```
-You can use joystick to select the function you want, cursor will move based on joystick state.
+You can use joystick to select the function you want, cursor will move based on joystick state.  
 ```
 +----------+         +----------+
 |          |   Joy   |          |
@@ -138,7 +138,7 @@ You can use joystick to select the function you want, cursor will move based on 
 ```
 ### Function Usage:
 * Time setting:
-move cursor to the "time setting" funct and press the btn
+move cursor to the "time setting" funct and press the btn  
 ```
 +---------------------+
 |Sat Jan 1 2022       |
@@ -150,9 +150,9 @@ move cursor to the "time setting" funct and press the btn
 |                     |
 +---------------------+
 ```
-And you can use joystick to set system time.
-Use up/down to increase/decrease time
-Press the button to comfirm a time setting.
+And you can use joystick to set system time.  
+Use up/down to increase/decrease time  
+Press the button to comfirm a time setting.  
 ```
                               +---------------------+       +---------------------+       +---------------------+       +---------------------+       +---------------------+
                               |                     |       |                     |       |                     |       |                     |       |                     |
@@ -192,8 +192,8 @@ Press the button to comfirm a time setting.
 
 ```
 * Text detect:
-text detect:
-move cursor to the "text detect" funct and press the btn
+text detect:  
+move cursor to the "text detect" funct and press the btn  
 ```
 +---------------------+
 |Sat Jan 1 2022       |
@@ -205,12 +205,12 @@ move cursor to the "text detect" funct and press the btn
 |                     |
 +---------------------+
 ```
-Put medicine bag in front of camera, then press button to start detect.
-There will be two situation:
-1. Detect failed. 
-You will hear the device indicate you the detection is failed, check if you put the well and make sure it is flatted welled without wrinkles.
-You can back to menu by move joystick left.
-After everything is setup perfectly, select "text detect" to detect text again.
+Put medicine bag in front of camera, then press button to start detect.  
+There will be two situation:  
+1. Detect failed.   
+You will hear the device indicate you the detection is failed, check if you put the well and make sure it is flatted welled without wrinkles.  
+You can back to menu by move joystick left.  
+After everything is setup perfectly, select "text detect" to detect text again.  
 ```
 +---------------------+       +---------------------+
 |Sat Jan 1 2022       | Press |Sat Jan 1 2022       |
@@ -224,15 +224,14 @@ After everything is setup perfectly, select "text detect" to detect text again.
 (The failed detect audio well be played)
 * Flow diagram if detect failed
 ```
-2. Detect success.
-You will hear the device indicate you the detection result (proper freq to take medicine), then the device would show a menu for you to choose your next to take medicine.
-Move joystick Up/Down to select when will you take medicine next time,
-press btn to ensure your sel.
-After you select next time to take the med, the device will show your selection on screen and read out lout.
-Then, after few sec, you'll hear the device saying: "Please put medicine bag into the box." and show "Put med into box" on screen.
-Please put the bag in front of HC-SR04, otherwise you'll hear the device keeping saying: "Please put medicine bag into the box." until
-you do so.
-You can back to menu by move joystick left after all.
+2. Detect success.  
+You will hear the device indicate you the detection result (proper freq to take medicine), then the device would show a menu for you to choose your next to take medicine.  
+Move joystick Up/Down to select when will you take medicine next time, press btn to ensure your sel.  
+After you select next time to take the med, the device will show your selection on screen and read out lout.  
+Then, after few sec, you'll hear the device saying: "Please put medicine bag into the box." and show "Put med into box" on screen.  
+Please put the bag in front of HC-SR04, otherwise you'll hear the device keeping saying: "Please put medicine bag into the box."  
+until you do so.
+You can back to menu by move joystick left after all.  
 ```
 +---------------------+       +---------------------+       +---------------------+       +---------------------+
 |Sat Jan 1 2022       |       |Sat Jan 1 2022       |       |Sat Jan 1 2022       | After |Sat Jan 1 2022       |
@@ -250,11 +249,11 @@ You can back to menu by move joystick left after all.
                                                 Stick left
 * Flow diagram if detect success
 ```
-* When to take med
-There will be two situation:
-1. You haven't use detect text before or the nearest time you FAILED to detect text.
-You'll hear device ask you go to "detect text" function first, the device will also show this indication on screen.
-You can back to menu by move joystick left.
+* When to take med  
+There will be two situation:  
+1. You haven't use detect text before or the nearest time you FAILED to detect text.  
+You'll hear device ask you go to "detect text" function first, the device will also show this indication on screen.  
+You can back to menu by move joystick left.  
 ```
 +---------------------+       +---------------------+
 |Sat Jan 1 2022       | Press |                     |
@@ -270,9 +269,9 @@ You can back to menu by move joystick left.
 ```
 
 
-2. You have detect text SUCCESSFULLY before
-The device will read out when you should take medicine next time, those info will also show on screen.
-You can back to menu by move joystick left.
+2. You have detect text SUCCESSFULLY before  
+The device will read out when you should take medicine next time, those info will also show on screen.  
+You can back to menu by move joystick left.  
 ```
 +---------------------+       +---------------------+
 |Sat Jan 1 2022       | Press |Sat Jan 1 2022       |
@@ -284,7 +283,7 @@ You can back to menu by move joystick left.
 |                     | left  |<- back              |
 +---------------------+       +---------------------+
                         (Read out when you should take med)
-* Flow diagram if you have detect text SUCCESSFULLY before.
+* Flow diagram if you have detect text SUCCESSFULLY before.  
 ```
 
 

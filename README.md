@@ -47,10 +47,10 @@ Connect all components as picture show.
 ### Compile the prog
 (Please use following cmd in linux system only)  
 ```bash
-git clone https://github.com/ARC-AIOT/Hardware
+$ git clone https://github.com/ARC-AIOT/Hardware
 $ mv Hardware Synopsys_SDK_V22.01/
 $ cd Synopsys_SDK_V22.01/Hardware/combine
-make && make flash
+$ make && make flash
 ```
 Upload the prog to the board (see instruction below), press the rst btn and enjoy  
 ### Upload the prog

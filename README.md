@@ -45,7 +45,7 @@ Connect all components as picture show.
 
 
 ### Compile the prog
-
+(Please use following cmd in linux system only)  
 ```bash
 git clone https://github.com/ARC-AIOT/Hardware
 $ mv Hardware Synopsys_SDK_V22.01/

@@ -1,5 +1,5 @@
 # 1)Introduction
-我們的作品是智慧輔助用藥系統，目的是為了要幫助老人家解決忘記吃藥的問題，我們的作品能夠辨識藥袋上每日該服用幾次來提示使用者在指定時間服用藥物
+Our work is Smart Medication Use Support System. The purpose is to help the elderly solve problem of forgetting to take medicine， our work can identify how many times a day the medicine should be taken that written on the medicine bag to remind the user to take the medicine at the specified time.
 # 2)HW/SW Setup
 <img src="./img_src/ARC_EM9D.jpg" width="20%" align="right"/>
 
@@ -54,12 +54,11 @@ make && make flash
 ```
 Upload the image file to the board, press the rst btn and enjoy
 ### Upload the prog
-1. 在cygwin以及ubuntu裡使用make以及make flash把我們的程式碼編譯並產生image檔  
-2. 根據教程中把J20以及J11腳位短路  
-3. 把image檔燒錄進板子  
-4. 燒錄完成後把J20以及J11開路  
-5. 按下reset按鈕初始化系統，至此前置設定工作已經完成  
-
+1. Use 'make' and 'make flash' command in cygwin and ubuntu to get the image file
+2. Short J11 and J20
+3. Burn the image file into the board
+4. Open J11 and J20
+5. Press the reset button to initialize the system
 
 # 3)User Manual
 
@@ -71,7 +70,7 @@ Upload the image file to the board, press the rst btn and enjoy
 5. Take medicine on time with the notification of our device  
 6. If you want to put a new bag of medicine, just start from step 2
 
-### The detail instruction of each stage can be found below
+### The detail instruction of each step can be found below
 
 ### Function Overview
 * Time setting:

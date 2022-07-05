@@ -13,7 +13,7 @@
 #include "SC16IS750_Bluepacket.h"
 
 #include "DFPlayer.h"
-#define ARDUINO
+#define BUSY_PIN GPIO1
 
 // This example code shows how to Setup a DFPlayer
 // And play mp3 files.
@@ -25,23 +25,19 @@ int main(void) {
   HX_GPIOSetup();
   IRQSetup();
   UartInit(SC16IS750_PROTOCOL_SPI);
-  GPIOSetPinMode(SC16IS750_PROTOCOL_SPI, CH_A, GPIO1, INPUT);
-  GPIOSetPinMode(SC16IS750_PROTOCOL_SPI, CH_A, GPIO5, OUTPUT);
-  GPIOSetPinMode(SC16IS750_PROTOCOL_SPI, CH_A, GPIO6, OUTPUT);
-  GPIOSetPinState(SC16IS750_PROTOCOL_SPI, CH_A, GPIO5, HIGH);
-  GPIOSetPinState(SC16IS750_PROTOCOL_SPI, CH_A, GPIO6, LOW);
+  GPIOSetPinMode(SC16IS750_PROTOCOL_SPI, CH_A, BUSY_PIN, INPUT);
 
   board_delay_ms(1000); // Wait for setting SPI
   printf("Setting DFPlayer...\n");
   dfplayer Player = Init_DFPlayer();
   Player.set_vol(5);
   board_delay_ms(500);
-  if (!playerBusy())
+  if (!Player.isBusy(BUSY_PIN))
     Player.play();
   board_delay_ms(500);
   int i = 1;
   while (1) {
-    printf("%d PP state %d\n", i, playerBusy()); // PP: Player Port
+    printf("%d PP state %d\n", i, Player.isBusy(BUSY_PIN)); // PP: Player Port
     board_delay_ms(1000);
     i++;
     if (i % 25 == 0)

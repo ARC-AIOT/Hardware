@@ -1,6 +1,5 @@
 #include "DFPlayer.h"
-
-void execute_cmd(uint8_t CMD, uint8_t Par1, uint8_t Par2) {
+void execute_cmd(uint8_t CMD, char Par1, char Par2) {
   // calcute checksum (2 bytes)
   uint16_t checksum =
       -(_Version_Byte + _Command_Length + CMD + _Acknowledge + Par1 + Par2);
@@ -47,10 +46,15 @@ void playNum(uint16_t song_num) {
   board_delay_ms(100);
 }
 
+void playFoldNum(char folder, char song_num) {
+  execute_cmd(_PLAY_FOLD, folder, song_num);
+  board_delay_ms(100);
+}
+
 void set_vol(uint8_t vol) { execute_cmd(_SET_VOL, 0, ((vol - 1) & 0x1f)); }
 
 dfplayer Init_DFPlayer() {
-  dfplayer dfp = {play,  playNum, playNext,    playPrev,
+  dfplayer dfp = {play,  playNum, playFoldNum, playNext,  playPrev,
                   pause, set_vol, execute_cmd, playerBusy};
   execute_cmd(_PLAY_Init, 0, 0);
   board_delay_ms(500);

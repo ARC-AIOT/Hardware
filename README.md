@@ -62,6 +62,17 @@ Upload the image file to the board, press the rst btn and enjoy
 
 
 # 3)User Manual
+
+### Basic Flow
+1. After pressing reset button,set up the time by 'Time setting'
+2. Choose 'text detect' to ask the device read information
+3. If recognization success then go on,if failed back to step 2
+4. Choose your next medication time
+5. Take medicine on time with the notification of our device  
+6. If you want to put a new bag of medicine, just start from step 2
+
+### The detail instruction of each stage can be found below
+
 ### Function Overview
 * Time setting:
     Setup system time
@@ -208,7 +219,7 @@ move cursor to the "text detect" funct and press the btn
 Put medicine bag in front of camera, then press button to start detect.  
 There will be two situation:  
 1. Detect failed.   
-You will hear the device indicate you the detection is failed, check if you put the well and make sure it is flatted welled without wrinkles.  
+You will hear the device indicate you the detection is failed, check if you put the medicine bag well and make sure it is flatted welled without wrinkles.  
 You can back to menu by move joystick left.  
 After everything is setup perfectly, select "text detect" to detect text again.  
 ```
@@ -225,8 +236,8 @@ After everything is setup perfectly, select "text detect" to detect text again.
 * Flow diagram if detect failed
 ```
 2. Detect success.  
-You will hear the device indicate you the detection result (proper freq to take medicine), then the device would show a menu for you to choose your next to take medicine.  
-Move joystick Up/Down to select when will you take medicine next time, press btn to ensure your sel.  
+You will hear the device indicate you the detection result (proper freq to take medicine), then the device would display a menu for you to choose your next medication time.  
+Move joystick Up/Down to select when will you take medicine next time, press btn to ensure your selection.  
 After you select next time to take the med, the device will show your selection on screen and read out lout.  
 Then, after few sec, you'll hear the device saying: "Please put medicine bag into the box." and show "Put med into box" on screen.  
 Please put the bag in front of HC-SR04, otherwise you'll hear the device keeping saying: "Please put medicine bag into the box."  
@@ -252,7 +263,7 @@ You can back to menu by move joystick left after all.
 **Mind:**  
 Mind that once you use the detect text function successfully, HC-SR04 will monitor if you move the 
 medicine bag ceaselessly.  
-Once you were caught, the device will start Keeping playing audio "Put med into box" over and over again till you put back the bag.
+Once you were caught, the device will start Keeping playing audio "Put med into box" over and over again until you put the bag back.
 
 * When to take med  
 There will be two situation:  

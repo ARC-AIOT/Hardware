@@ -52,7 +52,7 @@ $ mv Hardware Synopsys_SDK_V22.01/
 $ cd Synopsys_SDK_V22.01/Hardware/combine
 make && make flash
 ```
-Upload the image file to the board, press the rst btn and enjoy
+Upload the prog to the board (see instruction below), press the rst btn and enjoy  
 ### Upload the prog
 1. Use 'make' and 'make flash' command in cygwin and ubuntu to get the image file
 2. Short J11 and J20
@@ -231,7 +231,7 @@ After everything is setup perfectly, select "text detect" to detect text again.
 |                     | Stick |                     |
 |                     | left  |<- back              |
 +---------------------+       +---------------------+
-(The failed detect audio well be played)
+(The failed detect audio will be played)
 * Flow diagram if detect failed
 ```
 2. Detect success.  

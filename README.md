@@ -41,13 +41,16 @@ Our work is Smart Medication Use Support System. The purpose is to help the elde
 
 ### Schematic Diagram
 <img src="./img_src/HWScheme.png" width="80%" align="center"/>
-Connect all components as picture show.
+Connect all components as picture show.   
+
+Copy all directories in dfp_src into your micro_sd card's root directory and put micro_sd into dfplayer.  
 
 
-### Compile the prog
+### Setup the prog
 (Please use following cmd in linux system only, you need to download [Synopsys_SDK_V22.01/](https://arc.synopsys.com.tw/resourceDetail/6) by yourself beforehand.)
 ```bash
 $ git clone https://github.com/ARC-AIOT/Hardware
+$ cp -r Hardware/dfp_src/**/ ($micro_sd root dir)
 $ mv Hardware Synopsys_SDK_V22.01/
 $ cd Synopsys_SDK_V22.01/Hardware/combine
 $ make && make flash

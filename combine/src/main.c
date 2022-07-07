@@ -294,9 +294,6 @@ struct tm tmpNextTm;
 void medMonitor() {
   if (!haveNextTime)
     return;
-  enum nextTime { T1 = 1, T2, T3, T4 };
-  enum nextTime nT = T1;
-
   if (mktime(&ti) < tmpNextSec) {
     waitNextTimeToEat();
   } else {
@@ -366,8 +363,11 @@ void readNextTimeToEat() {
     board_delay_ms(900);
     Player.playFoldNum(6, tmpNextTm.tm_min % 10);
   }
-
-  board_delay_ms(900);
+  if (tmpNextTm.tm_min == 0) {
+    Player.playFoldNum(8, 6); //分
+    board_delay_ms(900);
+  } else
+    board_delay_ms(900);
 }
 
 void showNextTimeToEat() {

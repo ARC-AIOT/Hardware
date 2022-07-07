@@ -10,9 +10,11 @@ struct __menu {
   int (*sel)(struct __menu m);
   void (*setOpt)(struct __menu *m, char str[6][22], int optionNum);
   void (*eachLoop)(); // The func would be called through each loop
+  void (*renderOpt)();
 };
 typedef struct __menu menu;
 
 menu initMenu(void (*eachLoop)());
 void setOpt(struct __menu *m, char str[6][22], int optionNum);
 int optionSel(struct __menu m);
+void renderOpt();

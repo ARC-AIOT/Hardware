@@ -10,18 +10,23 @@ void setOpt(struct __menu *m, char str[6][22], int optionNum) {
   m->optionNum = optionNum;
 }
 
+void renderOpt(struct __menu m) {
+  char strBuf[22] = "";
+
+  for (int i = 0; i < m.optionNum; i++) {
+    OLED_SetCursor(i + 2, 0);
+    sprintf(strBuf, "  %s", m.optionText[i]);
+    OLED_DisplayString_Flush(strBuf);
+  }
+}
+
 int optionSel(struct __menu m) {
   char strBuf[22] = "";
   int optionNum = m.optionNum;
   int optionPtr = 0;
   OLED_Clear();
   m.eachLoop();
-  for (int i = 0; i < optionNum; i++) {
-    OLED_SetCursor(i + 2, 0);
-    sprintf(strBuf, "  %s", m.optionText[i]);
-    OLED_DisplayString(strBuf);
-  }
-
+  renderOpt(m);
   while (1) {
     m.eachLoop();
     OLED_SetCursor(optionPtr + 2, 0); // First 2 line is reserved for showtime()

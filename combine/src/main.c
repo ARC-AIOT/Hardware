@@ -56,21 +56,22 @@ bool haveNextTime = false;
 
 dfplayer Player;
 
-void mainMenu();
-void initMainMenu();
-bool detected = false;
+// main menu
+void main_Menu();
+void mainMenuEachLoop();
+void timeSetMenu();
+void textDetect();
+void whenToTake();
+// main menu
 
 void set_Hour_Min(int *hour, int *min);
 void set_day(int year, int month, int *day);
 void set_month(int *month);
 void set_year(int *year);
-void timeSetMenu();
 void timeInit();
 void showTime();
 void medMonitor();
-void initSelMenu();
 void nextTimeSelMenu();
-void textDetect();
 void showNextTimeToEat();
 void readNextTimeToEat();
 void getNextTime(int);
@@ -83,64 +84,6 @@ uint32_t idx[11] = {0};
 uint8_t image[640 * 480] = {0};
 uint8_t output_img[32 * 640] = {0};
 int test[10] = {0};
-
-void mainMenuEachLoop() {
-  showTime();
-  if (haveNextTime &&
-      (!detect_obj(10, 6))) // The time have setted and med is removed
-    medMonitor();
-}
-
-void whenToTake() {
-  if (haveNextTime) {
-    showNextTimeToEat();
-    readNextTimeToEat();
-  } else {
-    OLED_Clear();
-    OLED_SetCursor(3, 0);
-    sprintf(str_buf, "Please go to");
-    OLED_DisplayString_Flush(str_buf);
-    OLED_SetCursor(4, 0);
-    sprintf(str_buf, "text detect first");
-    OLED_DisplayString_Flush(str_buf);
-    Player.playFoldNum(4, 3); // 003_請先進行文字辨識.wav
-    board_delay_ms(2500);
-  }
-}
-
-void mainMenu() {
-  menu mainMenu = {
-      .optionNum = 3,
-      .optionText = {"Time setting", "Text detect", "When to take med"},
-      .sel = optionSel,
-      .setOpt = setOpt,
-      .eachLoop = mainMenuEachLoop};
-
-  int sel = mainMenu.sel(mainMenu);
-  showTime();
-  switch (sel) {
-  case 0:
-    timeSetMenu();
-    break;
-  case 1:
-    textDetect();
-    break;
-  case 2:
-    whenToTake();
-    break;
-  default:
-    break;
-  }
-  showTime();
-  OLED_SetCursor(7, 0);
-  sprintf(str_buf, "<- back");
-  OLED_DisplayString_Flush(str_buf);
-  while (1) {
-    if (get_joystick_btn(JoyVRx)) {
-      break;
-    }
-  }
-}
 
 int main(void) {
   synopsys_camera_init();
@@ -176,9 +119,66 @@ int main(void) {
   // Setting IIC for OLED
   timeInit();
   while (1)
-    mainMenu();
+    main_Menu();
 
   return 0;
+}
+
+menu mainMenu = {
+    .optionNum = 3,
+    .optionText = {"Time setting", "Text detect", "When to take med"},
+    .sel = optionSel,
+    .setOpt = setOpt,
+    .eachLoop = mainMenuEachLoop,
+    .renderOpt = renderOpt};
+
+void main_Menu() {
+  int sel = mainMenu.sel(mainMenu);
+  showTime();
+  switch (sel) {
+  case 0:
+    timeSetMenu();
+    break;
+  case 1:
+    textDetect();
+    break;
+  case 2:
+    whenToTake();
+    break;
+  default:
+    break;
+  }
+  showTime();
+  OLED_SetCursor(7, 0);
+  sprintf(str_buf, "<- back");
+  OLED_DisplayString_Flush(str_buf);
+  while (1) {
+    if (get_joystick_btn(JoyVRx)) {
+      break;
+    }
+  }
+}
+
+void mainMenuEachLoop() {
+  showTime();
+  medMonitor();
+}
+
+void whenToTake() {
+  if (haveNextTime) {
+    showNextTimeToEat();
+    readNextTimeToEat();
+  } else {
+    OLED_Clear();
+    OLED_SetCursor(3, 0);
+    sprintf(str_buf, "Please go to");
+    OLED_DisplayString_Flush(str_buf);
+    OLED_SetCursor(4, 0);
+    sprintf(str_buf, "text detect first");
+    OLED_DisplayString_Flush(str_buf);
+    Player.playFoldNum(4, 3); // 003_請先進行文字辨識.wav
+    board_delay_ms(2500);
+  }
 }
 
 // Text detect functions
@@ -234,7 +234,6 @@ void nextTimeSelMenu() {
                           .sel = optionSel,
                           .setOpt = setOpt,
                           .eachLoop = nextTimeMenuEachLoop};
-
   int nT = nextTimeSelMenu.sel(nextTimeSelMenu);
   OLED_Clear();
   showTime();
@@ -292,12 +291,13 @@ struct tm tmpNextTm;
 
 // Medicine monitor funct
 void medMonitor() {
-  if (!haveNextTime)
+  if (!haveNextTime || detect_obj(10, 6))
     return;
   if (mktime(&ti) < tmpNextSec) {
     waitNextTimeToEat();
   } else {
     nextTimeSelMenu();
+    mainMenu.renderOpt(mainMenu);
   }
 }
 

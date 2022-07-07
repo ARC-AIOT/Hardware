@@ -1,6 +1,13 @@
 #ifndef _ADC_JOYSTICK_H_
 #define _ADC_JOYSTICK_H_
 #include "hx_drv_iic_m.h"
+
+#define JoyBtn 5 // Set gpio5 as JoyBtn pin
+#define JoyVRx 6 // Set gpio6 as JoyVRx pin,
+                 // mind we connected it to a
+                 // digital pin, thus it would
+                 // be treated as another btn
+
 /*
  *  1 - Up
  *  0 - Idle

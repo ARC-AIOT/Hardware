@@ -23,11 +23,7 @@
 
 // For JoyStick
 #include "joystick.h"
-#define JoyBtn 5 // Set gpio5 as JoyBtn pin
-#define JoyVRx 6 // Set gpio6 as JoyVRx pin,
-                 // mind we connected it to a
-                 // digital pin, thus it would
-                 // be treated as another btn
+
 // For JoyStick
 
 // For DFPlayer
@@ -44,6 +40,8 @@
 #include "text_detection_tools.h"
 // For text detection
 #include "Ultrasonic.h"
+
+#include "menu.h"
 
 #define ADC_3021_DEV_ADDR 0x4f
 #define REG_ADDR 0x7f
@@ -86,6 +84,64 @@ uint8_t image[640 * 480] = {0};
 uint8_t output_img[32 * 640] = {0};
 int test[10] = {0};
 
+void mainMenuEachLoop() {
+  showTime();
+  if (haveNextTime &&
+      (!detect_obj(10, 6))) // The time have setted and med is removed
+    medMonitor();
+}
+
+void whenToTake() {
+  if (haveNextTime) {
+    showNextTimeToEat();
+    readNextTimeToEat();
+  } else {
+    OLED_Clear();
+    OLED_SetCursor(3, 0);
+    sprintf(str_buf, "Please go to");
+    OLED_DisplayString_Flush(str_buf);
+    OLED_SetCursor(4, 0);
+    sprintf(str_buf, "text detect first");
+    OLED_DisplayString_Flush(str_buf);
+    Player.playFoldNum(4, 3); // 003_請先進行文字辨識.wav
+    board_delay_ms(2500);
+  }
+}
+
+void mainMenu() {
+  menu mainMenu = {
+      .optionNum = 3,
+      .optionText = {"Time setting", "Text detect", "When to take med"},
+      .sel = optionSel,
+      .setOpt = setOpt,
+      .eachLoop = mainMenuEachLoop};
+
+  int sel = mainMenu.sel(mainMenu);
+  showTime();
+  switch (sel) {
+  case 0:
+    timeSetMenu();
+    break;
+  case 1:
+    textDetect();
+    break;
+  case 2:
+    whenToTake();
+    break;
+  default:
+    break;
+  }
+  showTime();
+  OLED_SetCursor(7, 0);
+  sprintf(str_buf, "<- back");
+  OLED_DisplayString_Flush(str_buf);
+  while (1) {
+    if (get_joystick_btn(JoyVRx)) {
+      break;
+    }
+  }
+}
+
 int main(void) {
   synopsys_camera_init();
   tflitemicro_algo_init();
@@ -119,96 +175,10 @@ int main(void) {
   OLED_Clear();
   // Setting IIC for OLED
   timeInit();
-
-  mainMenu();
+  while (1)
+    mainMenu();
 
   return 0;
-}
-
-void initMainMenu() {
-  OLED_Clear();
-  showTime();
-  OLED_SetCursor(2, 0);
-  sprintf(str_buf, "  time setting");
-  OLED_DisplayString(str_buf);
-
-  OLED_SetCursor(3, 0);
-  sprintf(str_buf, "  text detect");
-  OLED_DisplayString(str_buf);
-
-  OLED_SetCursor(4, 0);
-  sprintf(str_buf, "  When to take med");
-  OLED_DisplayString(str_buf);
-}
-
-void mainMenu() {
-  // Init
-  enum Option { O1 = 0, O2, O3 };
-  enum Option optionPtr = O1;
-  bool selBtn = false;
-  initMainMenu();
-  // Init
-  while (1) {
-    showTime();
-    OLED_SetCursor(optionPtr + 2, 0); // First 2 line is reserved for showtime()
-    sprintf(str_buf, " ");
-    OLED_DisplayString(str_buf);
-
-    optionPtr += get_joystick_state();
-    if (optionPtr > O3)
-      optionPtr = O1;
-    if (optionPtr < O1)
-      optionPtr = O3;
-
-    OLED_SetCursor(optionPtr + 2, 0); // First 2 line is reserved for showtime()
-    sprintf(str_buf, ">");
-    OLED_DisplayString(str_buf);
-    if (haveNextTime &&
-        (!detect_obj(10, 6))) // The time have setted and med is removed
-      medMonitor();
-    if (get_joystick_btn(JoyBtn)) {
-      OLED_Clear();
-      showTime();
-
-      switch (optionPtr) {
-      case O1:
-        timeSetMenu();
-        break;
-      case O2:
-        textDetect();
-        break;
-      case O3:
-        if (haveNextTime) {
-          showNextTimeToEat();
-          readNextTimeToEat();
-        } else {
-          OLED_Clear();
-          OLED_SetCursor(3, 0);
-          sprintf(str_buf, "Please go to");
-          OLED_DisplayString_Flush(str_buf);
-          OLED_SetCursor(4, 0);
-          sprintf(str_buf, "text detect first");
-          OLED_DisplayString_Flush(str_buf);
-          Player.playFoldNum(4, 3); // 003_請先進行文字辨識.wav
-          board_delay_ms(2500);
-        }
-        break;
-      default:
-        break;
-      }
-      OLED_SetCursor(7, 0);
-      sprintf(str_buf, "<- back");
-      OLED_DisplayString_Flush(str_buf);
-
-      while (1) {
-        if (get_joystick_btn(JoyVRx)) {
-          initMainMenu();
-          break;
-        }
-      }
-    } else
-      board_delay_ms(200);
-  }
 }
 
 // Text detect functions
@@ -250,54 +220,39 @@ void textDetect() {
   nextTimeSelMenu();
 }
 
+void nextTimeMenuEachLoop() { showTime(); }
 void nextTimeSelMenu() {
-  enum nextTime { T1 = 1, T2, T3, T4 };
-  enum nextTime nT = T1;
-
   Player.playFoldNum(4, 2);
-  board_delay_ms(2500);
-
   /* 0004_Instruction/
   0002_請選擇下次吃藥時間.wav
   */
-  initSelMenu();
-  while (1) {
-    OLED_SetCursor(nT + 2, 0); // First 2 line is reserved for showtime()
-    sprintf(str_buf, " ");
-    OLED_DisplayString(str_buf);
-    nT += get_joystick_state();
+  board_delay_ms(2500);
+  showTime();
+  menu nextTimeSelMenu = {.optionNum = 4,
+                          .optionText = {"After breakfast", "After lunch",
+                                         "After dinner", "Before sleep"},
+                          .sel = optionSel,
+                          .setOpt = setOpt,
+                          .eachLoop = nextTimeMenuEachLoop};
 
-    if (nT > T4)
-      nT = T1;
-    if (nT < T1)
-      nT = T4;
-    OLED_SetCursor(nT + 2, 0);
-    sprintf(str_buf, ">");
-    OLED_DisplayString(str_buf);
-
-    if (get_joystick_btn(JoyBtn))
-      break;
-    else
-      board_delay_ms(200);
-  }
+  int nT = nextTimeSelMenu.sel(nextTimeSelMenu);
   OLED_Clear();
   showTime();
   OLED_SetCursor(2, 0);
   sprintf(str_buf, "Next time to take med");
   OLED_DisplayString(str_buf);
-
   OLED_SetCursor(3, 0);
   switch (nT) {
-  case T1:
+  case 0:
     sprintf(str_buf, "After breakfast");
     break;
-  case T2:
+  case 1:
     sprintf(str_buf, "After lunch");
     break;
-  case T3:
+  case 2:
     sprintf(str_buf, "After dinner");
     break;
-  case T4:
+  case 3:
     sprintf(str_buf, "Before sleep");
     break;
   default:
@@ -305,7 +260,7 @@ void nextTimeSelMenu() {
   }
   OLED_DisplayString(str_buf);
 
-  Player.playFoldNum(2, nT);
+  Player.playFoldNum(2, nT + 1);
   board_delay_ms(2500);
 
   /* 0002_next_time/
@@ -332,26 +287,6 @@ void nextTimeSelMenu() {
   }
 }
 
-void initSelMenu() {
-  OLED_Clear();
-  showTime();
-  OLED_SetCursor(3, 0);
-  sprintf(str_buf, "  After breakfast");
-  OLED_DisplayString(str_buf);
-
-  OLED_SetCursor(4, 0);
-  sprintf(str_buf, "  After lunch");
-  OLED_DisplayString(str_buf);
-
-  OLED_SetCursor(5, 0);
-  sprintf(str_buf, "  After dinner");
-  OLED_DisplayString(str_buf);
-
-  OLED_SetCursor(6, 0);
-  sprintf(str_buf, "  Before sleep");
-  OLED_DisplayString(str_buf);
-}
-
 time_t tmpNextSec;
 struct tm tmpNextTm;
 
@@ -372,7 +307,7 @@ void medMonitor() {
 void getNextTime(int nT) {
   struct tm tmpTm;
   tmpTm = ti;
-  switch (nT) {
+  switch (nT + 1) {
   case 1:
     tmpTm.tm_hour = 8;
     tmpTm.tm_min = 30;
@@ -431,6 +366,7 @@ void readNextTimeToEat() {
     board_delay_ms(900);
     Player.playFoldNum(6, tmpNextTm.tm_min % 10);
   }
+
   board_delay_ms(900);
 }
 

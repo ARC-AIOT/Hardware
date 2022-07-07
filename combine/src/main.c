@@ -241,22 +241,7 @@ void nextTimeSelMenu() {
   sprintf(str_buf, "Next time to take med");
   OLED_DisplayString(str_buf);
   OLED_SetCursor(3, 0);
-  switch (nT) {
-  case 0:
-    sprintf(str_buf, "After breakfast");
-    break;
-  case 1:
-    sprintf(str_buf, "After lunch");
-    break;
-  case 2:
-    sprintf(str_buf, "After dinner");
-    break;
-  case 3:
-    sprintf(str_buf, "Before sleep");
-    break;
-  default:
-    break;
-  }
+  sprintf(str_buf, nextTimeSelMenu.optionText[nT]);
   OLED_DisplayString(str_buf);
 
   Player.playFoldNum(2, nT + 1);

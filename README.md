@@ -1,5 +1,5 @@
 # 1)Introduction
-Our work is Smart Medication Use Support System. The purpose is to help the elderly solve problem of forgetting to take medicine， our work can identify how many times a day the medicine should be taken that written on the medicine bag to remind the user to take the medicine at the specified time.
+Our work is Smart Medication Use Support System. The purpose is to help the elderly solve problem of forgetting to take medicine, our work can identify how many times a day the medicine should be taken that written on the medicine bag to remind the user to take the medicine at the specified time.
 # 2)HW/SW Setup
 <img src="./img_src/ARC_EM9D.jpg" width="20%" align="right"/>
 

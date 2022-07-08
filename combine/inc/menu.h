@@ -18,3 +18,6 @@ menu initMenu(void (*eachLoop)());
 void setOpt(struct __menu *m, char str[6][22], int optionNum);
 int optionSel(struct __menu m);
 void renderOpt();
+void sysTimeSetMenu(int *year, int *month, int *day, int *hr, int *min);
+void timeSel(int *hour, int *min);
+void setCalender(int *year, int *month, int *day);

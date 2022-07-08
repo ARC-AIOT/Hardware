@@ -50,10 +50,18 @@ char str_buf[100] = {0}; // String buffer for OLED_Display
 time_t begin_sec, now_sec;
 clock_t clk_cnt_time; // The clk cnt time will be set to zero after every time
                       // the time is set
-struct tm ti;
-// struct tm lastTimeTakeMed;
-bool haveNextTime = false;
+struct tm ti = {
+    .tm_year = (2022 - 1900), // year since 1900
+    .tm_mon = 0,              // 0~11, July is 6
+    .tm_mday = 1,
+    .tm_hour = 0,
+    .tm_min = 0,
+    .tm_sec = 0,
+};
 
+struct tm userTi[4];
+
+bool haveNextTime = false;
 dfplayer Player;
 
 // main menu
@@ -64,10 +72,8 @@ void textDetect();
 void whenToTake();
 // main menu
 
-void set_Hour_Min(int *hour, int *min);
-void set_day(int year, int month, int *day);
-void set_month(int *month);
-void set_year(int *year);
+void init_All();
+
 void timeInit();
 void showTime();
 void medMonitor();
@@ -86,38 +92,8 @@ uint8_t output_img[32 * 640] = {0};
 int test[10] = {0};
 
 int main(void) {
-  synopsys_camera_init();
-  tflitemicro_algo_init();
-  // Setting GPIO for joystick btn and DFPlayer
-  HX_GPIOSetup();
-  IRQSetup();
-
-  UartInit(SC16IS750_PROTOCOL_SPI); // Make sure CH_A of funt UartInit in
-                                    // SC16IS750_Bluepacket.c has been set up as
-                                    // 9600 baud rate, which is DFPlayer's
-                                    // working baud rate
-  GPIOSetPinMode(SC16IS750_PROTOCOL_SPI, CH_A, BUSY_PIN, INPUT);
-  GPIOSetPinMode(SC16IS750_PROTOCOL_SPI, CH_A, JoyBtn, INPUT);
-  GPIOSetPinMode(SC16IS750_PROTOCOL_SPI, CH_A, JoyVRx, INPUT);
-
-  init_ultra();
-
-  // Setting GPIO for joystick, DFPlayer, and Ultrasonic
-
-  // set up dfplayer
-  Player = Init_DFPlayer(); //　Construct an instance of obj dfplayer
-  Player.set_vol(15);
-  board_delay_ms(100);
-  // set up dfplayer
-
-  // Setting IIC for OLED
-  DEV_IIC *iic1_ptr;
-  iic1_ptr = hx_drv_i2cm_get_dev(USE_SS_IIC_1);
-  iic1_ptr->iic_open(DEV_MASTER_MODE, IIC_SPEED_STANDARD);
-  OLED_Init();
-  OLED_Clear();
-  // Setting IIC for OLED
-  timeInit();
+  init_All();
+  timeSetMenu();
   while (1)
     main_Menu();
 
@@ -289,26 +265,23 @@ void medMonitor() {
 void getNextTime(int nT) {
   struct tm tmpTm;
   tmpTm = ti;
+  tmpTm.tm_sec = 0;
   switch (nT + 1) {
   case 1:
     tmpTm.tm_hour = 8;
     tmpTm.tm_min = 30;
-    tmpTm.tm_sec = 0;
     break;
   case 2:
     tmpTm.tm_hour = 12;
     tmpTm.tm_min = 0;
-    tmpTm.tm_sec = 0;
     break;
   case 3:
     tmpTm.tm_hour = 18;
     tmpTm.tm_min = 0;
-    tmpTm.tm_sec = 0;
     break;
   case 4:
     tmpTm.tm_hour = 22;
     tmpTm.tm_min = 30;
-    tmpTm.tm_sec = 0;
     break;
   }
   tmpNextSec = mktime(&tmpTm);
@@ -400,7 +373,6 @@ void waitNextTimeToEat() {
 void showTime() {
   now_sec = begin_sec + (time_t)((clock() - clk_cnt_time) / CLOCKS_PER_SEC);
   ti = *(gmtime(&now_sec));
-
   char time_buf[30];
   OLED_SetCursor(0, 0);
   sprintf(time_buf, "%s", asctime(&ti));
@@ -412,12 +384,6 @@ void showTime() {
 }
 
 void timeInit() {
-  ti.tm_year = 2022 - 1900; // year since 1900
-  ti.tm_mon = 0;            // 0~11, July is 6
-  ti.tm_mday = 1;
-  ti.tm_hour = 0;
-  ti.tm_min = 0;
-  ti.tm_sec = 0;
   begin_sec = mktime(&ti);
   clk_cnt_time = clock();
 }
@@ -428,10 +394,7 @@ void timeSetMenu() {
   int day = ti.tm_mday;
   int hour = ti.tm_hour;
   int min = ti.tm_min;
-  set_year(&year);
-  set_month(&month);
-  set_day(year, month, &day);
-  set_Hour_Min(&hour, &min);
+  sysTimeSetMenu(&year, &month, &day, &hour, &min);
   ti.tm_year = year - 1900;
   ti.tm_mon = month - 1;
   ti.tm_mday = day;
@@ -441,129 +404,34 @@ void timeSetMenu() {
   clk_cnt_time = clock();
 }
 
-void set_year(int *year) {
+void init_All() {
+  synopsys_camera_init();
+  tflitemicro_algo_init();
+  // Setting GPIO for joystick btn and DFPlayer
+  HX_GPIOSetup();
+  IRQSetup();
+
+  UartInit(SC16IS750_PROTOCOL_SPI); // Make sure CH_A of funt UartInit in
+                                    // SC16IS750_Bluepacket.c has been set up as
+                                    // 9600 baud rate, which is DFPlayer's
+                                    // working baud rate
+  GPIOSetPinMode(SC16IS750_PROTOCOL_SPI, CH_A, BUSY_PIN, INPUT);
+  GPIOSetPinMode(SC16IS750_PROTOCOL_SPI, CH_A, JoyBtn, INPUT);
+  GPIOSetPinMode(SC16IS750_PROTOCOL_SPI, CH_A, JoyVRx, INPUT);
+
+  init_ultra();
+
+  // Setting GPIO for joystick, DFPlayer, and Ultrasonic
+
+  // set up dfplayer
+  Player = Init_DFPlayer(); //　Construct an instance of obj dfplayer
+  Player.set_vol(15);
+  board_delay_ms(100);
+  // set up dfplayer
+
+  // Setting IIC for OLED
+  OLED_Init();
   OLED_Clear();
-  while (1) {
-    OLED_SetCursor(2, 0);
-    sprintf(str_buf, "Years:");
-    OLED_DisplayString(str_buf);
-    OLED_SetCursor(3, 0);
-    sprintf(str_buf, "%d", *year);
-    OLED_DisplayString(str_buf);
-    *year -= get_joystick_state();
-    if (*year < 1900 || *year > 9999)
-      *year = 1900;
-    board_delay_ms(200);
-    if (get_joystick_btn(JoyBtn))
-      break;
-  }
-}
-
-void set_month(int *month) {
-  OLED_Clear();
-  while (1) {
-    OLED_SetCursor(2, 0);
-    sprintf(str_buf, "Month:");
-    OLED_DisplayString(str_buf);
-    OLED_SetCursor(3, 0);
-    sprintf(str_buf, "%02d", *month);
-    OLED_DisplayString(str_buf);
-    *month -= get_joystick_state();
-    if (*month < 1)
-      *month = 12;
-    else if (*month > 12) {
-      *month = 1;
-    }
-    board_delay_ms(200);
-    if (get_joystick_btn(JoyBtn))
-      break;
-  }
-}
-
-void set_day(int year, int month, int *day) {
-  OLED_Clear();
-  bool isSmall = (month == 4) || (month == 6) || (month == 9) || (month == 11);
-  bool isLeap = (((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0));
-  while (1) {
-    OLED_SetCursor(2, 0);
-    sprintf(str_buf, "Day:");
-    OLED_DisplayString(str_buf);
-    OLED_SetCursor(3, 0);
-    sprintf(str_buf, "%02d", *day);
-    OLED_DisplayString(str_buf);
-    *day -= get_joystick_state();
-    if (month == 2) {
-      if (isLeap) {
-        if (*day < 1)
-          *day = 29;
-        else if (*day > 29)
-          *day = 1;
-      } else {
-        if (*day < 1)
-          *day = 28;
-        else if (*day > 28)
-          *day = 1;
-      }
-    } else if (isSmall) {
-      if (*day < 1)
-        *day = 30;
-      else if (*day > 30)
-        *day = 1;
-    } else {
-      if (*day < 1)
-        *day = 31;
-      else if (*day > 31)
-        *day = 1;
-    }
-    board_delay_ms(200);
-    if (get_joystick_btn(JoyBtn))
-      break;
-  }
-}
-
-void set_Hour_Min(int *hour, int *min) {
-  OLED_Clear();
-  OLED_SetCursor(2, 0);
-  sprintf(str_buf, "Time:");
-  OLED_DisplayString(str_buf);
-  OLED_SetCursor(3, 0);
-  sprintf(str_buf, "%02d:%02d", *hour, *min);
-  OLED_DisplayString(str_buf);
-
-  while (1) {
-    *hour -= get_joystick_state();
-    if (*hour < 0)
-      *hour = 23;
-    else if (*hour > 23)
-      *hour = 0;
-    OLED_SetCursor(3, 0);
-    sprintf(str_buf, "  :%02d", *min);
-    OLED_DisplayString(str_buf);
-    board_delay_ms(100);
-
-    OLED_SetCursor(3, 0);
-    sprintf(str_buf, "%02d:%02d", *hour, *min);
-    OLED_DisplayString(str_buf);
-    board_delay_ms(100);
-    if (get_joystick_btn(JoyBtn))
-      break;
-  }
-  while (1) {
-    *min -= get_joystick_state();
-    if (*min < 0)
-      *min = 59;
-    else if (*min > 59)
-      *min = 0;
-    OLED_SetCursor(3, 0);
-    sprintf(str_buf, "%02d:  ", *hour);
-    OLED_DisplayString(str_buf);
-    board_delay_ms(100);
-
-    OLED_SetCursor(3, 0);
-    sprintf(str_buf, "%02d:%02d", *hour, *min);
-    OLED_DisplayString(str_buf);
-    board_delay_ms(100);
-    if (get_joystick_btn(JoyBtn))
-      break;
-  }
+  // Setting IIC for OLED
+  timeInit();
 }

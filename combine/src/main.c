@@ -59,7 +59,7 @@ struct tm ti = {
     .tm_sec = 0,
 };
 
-struct tm userTi[4];
+struct tm userTi[4] = {{0}, {0}, {0}, {0}};
 
 bool haveNextTime = false;
 dfplayer Player;
@@ -199,9 +199,7 @@ void textDetect() {
 void nextTimeMenuEachLoop() { showTime(); }
 void nextTimeSelMenu() {
   Player.playFoldNum(4, 2);
-  /* 0004_Instruction/
-  0002_請選擇下次吃藥時間.wav
-  */
+  // 0002_請選擇下次吃藥時間.wav
   board_delay_ms(2500);
   showTime();
   menu nextTimeSelMenu = {.optionNum = 4,
@@ -223,12 +221,11 @@ void nextTimeSelMenu() {
   Player.playFoldNum(2, nT + 1);
   board_delay_ms(2500);
 
-  /* 0002_next_time/
-  T1: 0001_下次吃藥時間早上，飯後服用.wav
-  T2: 0002_下次吃藥時間中午，飯後服用.wav
-  T3: 0003_下次吃藥時間晚上，飯後服用.wav
-  T4: 0004_下次吃藥時間：睡前.wav
-  */
+  // 0002_next_time/
+  // T1: 0001_下次吃藥時間早上，飯後服用.wav
+  // T2: 0002_下次吃藥時間中午，飯後服用.wav
+  // T3: 0003_下次吃藥時間晚上，飯後服用.wav
+  // T4: 0004_下次吃藥時間：睡前.wav
   now_sec = begin_sec + (time_t)((clock() - clk_cnt_time) / CLOCKS_PER_SEC);
   ti = *(gmtime(&now_sec));
   // lastTimeTakeMed = ti;
@@ -263,28 +260,12 @@ void medMonitor() {
 }
 
 void getNextTime(int nT) {
-  struct tm tmpTm;
-  tmpTm = ti;
-  tmpTm.tm_sec = 0;
-  switch (nT + 1) {
-  case 1:
-    tmpTm.tm_hour = 8;
-    tmpTm.tm_min = 30;
-    break;
-  case 2:
-    tmpTm.tm_hour = 12;
-    tmpTm.tm_min = 0;
-    break;
-  case 3:
-    tmpTm.tm_hour = 18;
-    tmpTm.tm_min = 0;
-    break;
-  case 4:
-    tmpTm.tm_hour = 22;
-    tmpTm.tm_min = 30;
-    break;
-  }
+  struct tm tmpTm = ti;
+  tmpTm.tm_hour = userTi[nT].tm_hour;
+  tmpTm.tm_min = userTi[nT].tm_min;
   tmpNextSec = mktime(&tmpTm);
+  if (tmpNextSec < mktime(&ti))
+    tmpNextSec = tmpNextSec + (60 * 60 * 24); // Add a day
   tmpNextTm = *(gmtime(&tmpNextSec));
 }
 
@@ -383,11 +364,6 @@ void showTime() {
   OLED_DisplayString_Flush(str_buf);
 }
 
-void timeInit() {
-  begin_sec = mktime(&ti);
-  clk_cnt_time = clock();
-}
-
 void timeSetMenu() {
   int year = ti.tm_year + 1900;
   int month = ti.tm_mon + 1;
@@ -400,8 +376,20 @@ void timeSetMenu() {
   ti.tm_mday = day;
   ti.tm_min = min;
   ti.tm_hour = hour;
+  ti.tm_sec = 0;
   begin_sec = mktime(&ti);
   clk_cnt_time = clock();
+
+  char userTimeStr[4][10] = {"breakfast", "lunch", "dinner", "bed"};
+  for (int i = 0; i < 4; i++) {
+    userTi[i] = ti;
+    OLED_SetCursor(2, 0);
+    sprintf(str_buf, "your %s time", userTimeStr[i]);
+    OLED_DisplayString_Flush(str_buf);
+    timeSel(&hour, &min);
+    userTi[i].tm_hour = hour;
+    userTi[i].tm_min = min;
+  }
 }
 
 void init_All() {
@@ -433,5 +421,4 @@ void init_All() {
   OLED_Init();
   OLED_Clear();
   // Setting IIC for OLED
-  timeInit();
 }

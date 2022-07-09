@@ -66,7 +66,7 @@ Upload the prog to the board (see instruction below), press the rst btn and enjo
 # 3)User Manual
 
 ### Basic Flow
-1. After pressing reset button,set up the time by 'Time setting'
+1. After pressing reset button,set up the time
 2. Choose 'text detect' to ask the device read information
 3. If recognization success then go on,if failed back to step 2
 4. Choose your next medication time
@@ -83,8 +83,49 @@ Upload the prog to the board (see instruction below), press the rst btn and enjo
 * When to take med:
     Show and read out when you should take medicine next time  
 
-**Mind:**   
-    One should setup system time before using text detect to ensure the system work properly.  
+### First time open device
+For the first time you open the device, you'll directly enter time setting mode.
+You should see something like this:
+```
++---------------------+       +---------------------+       +---------------------+       +---------------------+       +---------------------+
+|                     |       |                     |       |                     |       |                     |       |                     |
+|                     |       |                     |       |                     |       |                     |       |                     |
+|YYYY/MM/DD           |       |YYYY/MM/DD           |       |YYYY/MM/DD           |       |Time:                |       |Time:                |
+|2023/MM/DD           |       |YYYY/02/DD           |       |YYYY/MM/02           |       |01:XX                |       |XX:01                |
+|                     |       |                     |       |                     |       |                     |       |                     |
+|                     |       |                     |       |                     |       |                     |       |                     |
+|                     |       |                     |       |                     |       |                     |       |                     |
++---------------+-----+       +---------------+-----+       +---------------+-----+       +---------------+-----+       +---------------+-----+
+          Joy   ^                       Joy   ^                       Joy   ^                       Joy   ^                       Joy   ^
+         Stick  | Up                   Stick  | Up                   Stick  | Up                   Stick  | Up                   Stick  | Up
+                |                             |                             |                             |                             |
+                |                             |                             |                             |                             |
++---------------+-----+       +---------------+-----+       +---------------+-----+       +---------------+-----+       +---------------+-----+       +---------------------+
+|                     | Press |                     | Press |                     |       |                     | Press |                     |       |                     |
+|                     |  Btn  |                     |  Btn  |                     | Press |                     |  Btn  |                     | Press |                     |
+|YYYY/MM/DD           +------>+YYYY/MM/DD           +------>+YYYY/MM/DD           |  Btn  |Time:                +------>+Time:                |  Btn  |(Set your breakfast/ |
+|2022/MM/DD           |       |YYYY/01/DD           |       |YYYY/MM/01           +------>+00:XX                |       |XX:00                +------>+ lunch/dinner/bed    |
+|                     +<------+                     +<------+                     |       |                     +<------+                     |       | time in the same    |
+|                     | Stick |                     | Stick |                     |       |                     | Stick |                     |       | way of set Time)    |
+|                     | left  |                     | left  |                     |       |                     | left  |                     |       |                     |
++-----+---------------+       +-----+---------------+       +-----+---------------+       +-----+---------------+       +-----+---------------+       +---------------------+
+      |   Joy                       |   Joy                       |   Joy                       |   Joy                       |   Joy
+ Down |  Stick                 Down |  Stick                 Down |  Stick                 Down |  Stick                 Down |  Stick
+      |                             |                             |                             |                             |
+      v                             v                             v                             v                             v
++-----+---------------+       +-----+---------------+       +-----+---------------+       +-----+---------------+       +-----+---------------+
+|                     |       |                     |       |                     |       |                     |       |                     |
+|                     |       |                     |       |                     |       |                     |       |                     |
+|YYYY/MM/DD           |       |YYYY/MM/DD           |       |YYYY/MM/DD           |       |Time:                |       |Time:                |
+|2021/MM/DD           |       |YYYY/12/DD           |       |YYYY/MM/31           |       |23:XX                |       |XX:59                |
+|                     |       |                     |       |                     |       |                     |       |                     |
+|                     |       |                     |       |(might be 28/29/30,  |       |                     |       |                     |
+|                     |       |                     |       | based on month)     |       |                     |       |                     |
++---------------------+       +---------------------+       +---------------------+       +---------------------+       +---------------------+
+
+ (Set Year)                    (Set Month)                   (Set Day)
+
+```
 
 ### Main menu
 You should see the menu from OLED like this once you open the device:  
@@ -167,42 +208,43 @@ And you can use joystick to set system time.
 Use up/down to increase/decrease time  
 Press the button to comfirm a time setting.  
 ```
-                              +---------------------+       +---------------------+       +---------------------+       +---------------------+       +---------------------+
-                              |                     |       |                     |       |                     |       |                     |       |                     |
-                              |                     |       |                     |       |                     |       |                     |       |                     |
-                              |years:               |       |month:               |       |Day:                 |       |Time:                |       |Time:                |
-                              |2023                 |       |02                   |       |02                   |       |01:XX                |       |XX:01                |
-                              |                     |       |                     |       |                     |       |                     |       |                     |
-                              |                     |       |                     |       |                     |       |                     |       |                     |
-                              |                     |       |                     |       |                     |       |                     |       |                     |
-                              +---------------+-----+       +---------------+-----+       +---------------+-----+       +---------------+-----+       +---------------+-----+
-                                        Joy   ^                       Joy   ^                       Joy   ^                       Joy   ^                       Joy   ^
-                                       Stick  | Up                   Stick  | Up                   Stick  | Up                   Stick  | Up                   Stick  | Up
-                                              |                             |                             |                             |                             |
-                                              |                             |                             |                             |                             |
-+---------------------+       +---------------+-----+       +---------------+-----+       +---------------+-----+       +---------------+-----+       +---------------+-----+
-|Sat Jan 1 2022       |       |                     |       |                     |       |                     |       |                     |       |                     |
-|00:00                | Press |                     | Press |                     | Press |                     | Press |                     | Press |                     |
-|> time setting       |  Btn  |years:               |  Btn  |month:               |  Btn  |Day:                 |  Btn  |Time:                |  Btn  |Time:                |
-|  text detect        +------>|2022                 +------>|01                   +------>|01                   +------>|00:XX                +------>|XX:00                |
-|  When to take med   |       |                     |       |                     |       |                     |       |                     |       |                     |
-|                     |       |                     |       |                     |       |                     |       |                     |       |                     |
-|                     |       |                     |       |                     |       |                     |       |                     |       |                     |
-+---------------------+       +-----+---------------+       +-----+---------------+       +-----+---------------+       +-----+---------------+       +-----+---------------+
-                                    |   Joy                       |   Joy                       |   Joy                       |   Joy                       |   Joy
-                               Down |  Stick                 Down |  Stick                 Down |  Stick                 Down |  Stick                 Down |  Stick
-                                    |                             |                             |                             |                             |
-                                    v                             v                             v                             v                             v
-                              +-----+---------------+       +-----+---------------+       +-----+---------------+       +-----+---------------+       +-----+---------------+
-                              |                     |       |                     |       |                     |       |                     |       |                     |
-                              |                     |       |                     |       |                     |       |                     |       |                     |
-                              |years:               |       |month:               |       |Day:                 |       |Time:                |       |Time:                |
-                              |2021                 |       |12                   |       |31                   |       |23:XX                |       |XX:59                |
-                              |                     |       |                     |       |(might be 28/29/30,  |       |                     |       |                     |
-                              |                     |       |                     |       | based on month)     |       |                     |       |                     |
-                              |                     |       |                     |       |                     |       |                     |       |                     |
-                              +---------------------+       +---------------------+       +---------------------+       +---------------------+       +---------------------+
++---------------------+       +---------------------+       +---------------------+       +---------------------+       +---------------------+
+|                     |       |                     |       |                     |       |                     |       |                     |
+|                     |       |                     |       |                     |       |                     |       |                     |
+|YYYY/MM/DD           |       |YYYY/MM/DD           |       |YYYY/MM/DD           |       |Time:                |       |Time:                |
+|2023/MM/DD           |       |YYYY/02/DD           |       |YYYY/MM/02           |       |01:XX                |       |XX:01                |
+|                     |       |                     |       |                     |       |                     |       |                     |
+|                     |       |                     |       |                     |       |                     |       |                     |
+|                     |       |                     |       |                     |       |                     |       |                     |
++---------------+-----+       +---------------+-----+       +---------------+-----+       +---------------+-----+       +---------------+-----+
+          Joy   ^                       Joy   ^                       Joy   ^                       Joy   ^                       Joy   ^
+         Stick  | Up                   Stick  | Up                   Stick  | Up                   Stick  | Up                   Stick  | Up
+                |                             |                             |                             |                             |
+                |                             |                             |                             |                             |
++---------------+-----+       +---------------+-----+       +---------------+-----+       +---------------+-----+       +---------------+-----+       +---------------------+
+|                     | Press |                     | Press |                     |       |                     | Press |                     |       |                     |
+|                     |  Btn  |                     |  Btn  |                     | Press |                     |  Btn  |                     | Press |                     |
+|YYYY/MM/DD           +------>+YYYY/MM/DD           +------>+YYYY/MM/DD           |  Btn  |Time:                +------>+Time:                |  Btn  |(Set your breakfast/ |
+|2022/MM/DD           |       |YYYY/01/DD           |       |YYYY/MM/01           +------>+00:XX                |       |XX:00                +------>+ lunch/dinner/bed    |
+|                     +<------+                     +<------+                     |       |                     +<------+                     |       | time in the same    |
+|                     | Stick |                     | Stick |                     |       |                     | Stick |                     |       | way of set Time)    |
+|                     | left  |                     | left  |                     |       |                     | left  |                     |       |                     |
++-----+---------------+       +-----+---------------+       +-----+---------------+       +-----+---------------+       +-----+---------------+       +---------------------+
+      |   Joy                       |   Joy                       |   Joy                       |   Joy                       |   Joy
+ Down |  Stick                 Down |  Stick                 Down |  Stick                 Down |  Stick                 Down |  Stick
+      |                             |                             |                             |                             |
+      v                             v                             v                             v                             v
++-----+---------------+       +-----+---------------+       +-----+---------------+       +-----+---------------+       +-----+---------------+
+|                     |       |                     |       |                     |       |                     |       |                     |
+|                     |       |                     |       |                     |       |                     |       |                     |
+|YYYY/MM/DD           |       |YYYY/MM/DD           |       |YYYY/MM/DD           |       |Time:                |       |Time:                |
+|2021/MM/DD           |       |YYYY/12/DD           |       |YYYY/MM/31           |       |23:XX                |       |XX:59                |
+|                     |       |                     |       |                     |       |                     |       |                     |
+|                     |       |                     |       |(might be 28/29/30,  |       |                     |       |                     |
+|                     |       |                     |       | based on month)     |       |                     |       |                     |
++---------------------+       +---------------------+       +---------------------+       +---------------------+       +---------------------+
 
+ (Set Year)                    (Set Month)                   (Set Day)
 ```
 * Text detect:
 text detect:  

@@ -55,6 +55,7 @@ $ mv Hardware Synopsys_SDK_V22.01/
 $ cd Synopsys_SDK_V22.01/Hardware/combine
 $ make && make flash
 ```
+After copying the audio files to micro_sd, don't forget to plug it into dfplayer mini  
 Upload the prog to the board (see instruction below), press the rst btn and enjoy  
 ### Upload the prog
 1. Use 'make' and 'make flash' command in cygwin and ubuntu to get the image file

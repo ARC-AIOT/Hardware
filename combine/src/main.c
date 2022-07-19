@@ -94,6 +94,15 @@ int test[10] = {0};
 int main(void) {
   init_All();
   timeSetMenu();
+  showTime();
+  OLED_SetCursor(7, 0);
+  sprintf(str_buf, "<- back");
+  OLED_DisplayString_Flush(str_buf);
+  while (1) {
+    if (get_joystick_btn(JoyVRx)) {
+      break;
+    }
+  }
   while (1)
     main_Menu();
 

@@ -309,13 +309,14 @@ void readNextTimeToEat() {
   } else {
     Player.playFoldNum(6, 11);
     board_delay_ms(900);
-    Player.playFoldNum(6, tmpNextTm.tm_min % 10);
+    int dfpMin = tmpNextTm.tm_min % 10;
+    if (dfpMin)
+      Player.playFoldNum(6, tmpNextTm.tm_min % 10);
+    else
+      Player.playFoldNum(8, 6); //分
+    board_delay_ms(900);
   }
-  if (tmpNextTm.tm_min == 0) {
-    Player.playFoldNum(8, 6); //分
-    board_delay_ms(900);
-  } else
-    board_delay_ms(900);
+  board_delay_ms(900);
 }
 
 void showNextTimeToEat() {

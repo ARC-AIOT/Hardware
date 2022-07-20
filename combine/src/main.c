@@ -60,6 +60,8 @@ struct tm ti = {
 };
 
 struct tm userTi[4] = {{0}, {0}, {0}, {0}};
+time_t tmpNextSec;
+struct tm tmpNextTm, lastTimeTakeMed;
 
 bool haveNextTime = false;
 dfplayer Player;
@@ -79,7 +81,7 @@ void showTime();
 void medMonitor();
 void nextTimeSelMenu();
 void showNextTimeToEat();
-void readNextTimeToEat();
+void readTime(struct tm);
 void getNextTime(int);
 void waitNextTimeToEat();
 
@@ -90,7 +92,10 @@ uint32_t idx[11] = {0};
 uint8_t image[640 * 480] = {0};
 uint8_t output_img[32 * 640] = {0};
 int test[10] = {0};
-
+enum detectFreq { F1 = 1, F2, F3, F4, F5 };
+enum detectFreq freq = F1;
+// int todayTaken = 0; // Counter to record how many time user take med today
+bool haveTaked = false;
 int main(void) {
   init_All();
   timeSetMenu();
@@ -152,7 +157,8 @@ void mainMenuEachLoop() {
 void whenToTake() {
   if (haveNextTime) {
     showNextTimeToEat();
-    readNextTimeToEat();
+    Player.playFoldNum(3, 3); // 你下次的吃藥時間應在
+    readTime(tmpNextTm);
   } else {
     OLED_Clear();
     OLED_SetCursor(3, 0);
@@ -168,8 +174,6 @@ void whenToTake() {
 
 // Text detect functions
 void textDetect() {
-  enum detectFreq { F1 = 1, F2, F3, F4, F5 };
-  enum detectFreq freq = F1;
 
   synopsys_camera_start_capture();
   board_delay_ms(100);
@@ -237,34 +241,37 @@ void nextTimeSelMenu() {
   // T4: 0004_下次吃藥時間：睡前.wav
   now_sec = begin_sec + (time_t)((clock() - clk_cnt_time) / CLOCKS_PER_SEC);
   ti = *(gmtime(&now_sec));
-  // lastTimeTakeMed = ti;
+  lastTimeTakeMed = ti;
   getNextTime(nT);
   haveNextTime = true;
+  haveTaked = false;
   OLED_Clear();
   showTime();
   OLED_SetCursor(2, 0);
   sprintf(str_buf, "Put med into box");
   OLED_DisplayString_Flush(str_buf);
   while (1) {
-    if (detect_obj(5, 6))
+    if (detect_obj(7, 6))
       break;
     Player.playFoldNum(4, 1);
     board_delay_ms(3000);
   }
 }
 
-time_t tmpNextSec;
-struct tm tmpNextTm;
-
 // Medicine monitor funct
 void medMonitor() {
-  if (!haveNextTime || detect_obj(10, 6))
+  if (!haveNextTime || detect_obj(7, 6))
     return;
   if (mktime(&ti) < tmpNextSec) {
     waitNextTimeToEat();
   } else {
+    if (haveTaked) {
+      Player.playFoldNum(3, 5);
+      readTime(lastTimeTakeMed);
+    }
     nextTimeSelMenu();
     mainMenu.renderOpt(mainMenu);
+    haveTaked = true;
   }
 }
 
@@ -278,40 +285,40 @@ void getNextTime(int nT) {
   tmpNextTm = *(gmtime(&tmpNextSec));
 }
 
-void readNextTimeToEat() {
-  Player.playFoldNum(3, 3); // 你下次的吃藥時間應在
+void readTime(struct tm tmTime) {
+  // Player.playFoldNum(3, 3); // 你下次的吃藥時間應在
   board_delay_ms(2500);
-  if (tmpNextTm.tm_hour < 12)
+  if (tmTime.tm_hour < 12)
     Player.playFoldNum(7, 1); // 上午
-  else if (tmpNextTm.tm_hour == 12)
+  else if (tmTime.tm_hour == 12)
     Player.playFoldNum(7, 2); // 中午
   else
     Player.playFoldNum(7, 3); // 下午
   board_delay_ms(900);
-  int Hr = tmpNextTm.tm_hour;
+  int Hr = tmTime.tm_hour;
   if (Hr > 12)
     Hr -= 12;
   if (Hr == 0)
     Hr = 12;
   Player.playFoldNum(5, Hr);
   board_delay_ms(900);
-  if (tmpNextTm.tm_min > 10) {
-    Player.playFoldNum(8, (tmpNextTm.tm_min / 10));
+  if (tmTime.tm_min > 10) {
+    Player.playFoldNum(8, (tmTime.tm_min / 10));
     board_delay_ms(900);
-    if (tmpNextTm.tm_min % 10 == 0)
+    if (tmTime.tm_min % 10 == 0)
       Player.playFoldNum(8, 6);
     else
-      Player.playFoldNum(6, tmpNextTm.tm_min % 10);
+      Player.playFoldNum(6, tmTime.tm_min % 10);
     board_delay_ms(900);
 
-  } else if (tmpNextTm.tm_min == 10) {
+  } else if (tmTime.tm_min == 10) {
     Player.playFoldNum(6, 10);
   } else {
     Player.playFoldNum(6, 11);
     board_delay_ms(900);
-    int dfpMin = tmpNextTm.tm_min % 10;
+    int dfpMin = tmTime.tm_min % 10;
     if (dfpMin)
-      Player.playFoldNum(6, tmpNextTm.tm_min % 10);
+      Player.playFoldNum(6, tmTime.tm_min % 10);
     else
       Player.playFoldNum(8, 6); //分
     board_delay_ms(900);
@@ -341,7 +348,8 @@ void showNextTimeToEat() {
 void waitNextTimeToEat() {
   Player.playFoldNum(3, 1); // 你已經吃過藥了
   board_delay_ms(2500);
-  readNextTimeToEat();
+  Player.playFoldNum(3, 3); // 你下次的吃藥時間應在
+  readTime(tmpNextTm);
   Player.playFoldNum(3, 2);
   board_delay_ms(2500);
 }

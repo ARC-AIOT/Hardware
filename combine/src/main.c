@@ -82,7 +82,7 @@ void medMonitor();
 void nextTimeSelMenu();
 void showNextTimeToEat();
 void readTime(struct tm);
-void getNextTime(int);
+void getNextTime(int, bool);
 void waitNextTimeToEat();
 
 extern uint32_t g_wdma2_baseaddr;
@@ -91,6 +91,8 @@ uint32_t arr_std[480] = {0};
 uint32_t idx[11] = {0};
 uint8_t image[640 * 480] = {0};
 uint8_t output_img[32 * 640] = {0};
+int nTidx = 0;
+
 int test[10] = {0};
 enum detectFreq { F1 = 1, F2, F3, F4, F5 };
 enum detectFreq freq = F1;
@@ -199,10 +201,12 @@ void textDetect() {
   printf("\n");
   if (freq == 0) {
     Player.playFoldNum(1, 5); //請重新辨識
-    haveNextTime = false;
     board_delay_ms(4000);
     return;
   }
+  haveNextTime = false;
+  haveTaked = false;
+
   Player.playFoldNum(1, freq);
   board_delay_ms(4000);
 
@@ -211,27 +215,31 @@ void textDetect() {
 
 void nextTimeMenuEachLoop() { showTime(); }
 void nextTimeSelMenu() {
-  Player.playFoldNum(4, 2);
-  // 0002_請選擇下次吃藥時間.wav
-  board_delay_ms(2500);
-  showTime();
   menu nextTimeSelMenu = {.optionNum = 4,
                           .optionText = {"After breakfast", "After lunch",
                                          "After dinner", "Before sleep"},
                           .sel = optionSel,
                           .setOpt = setOpt,
                           .eachLoop = nextTimeMenuEachLoop};
-  int nT = nextTimeSelMenu.sel(nextTimeSelMenu);
+  nTidx = 0;
+  if (freq == 1) {
+    Player.playFoldNum(4, 2);
+    // 0002_請選擇下次吃藥時間.wav
+    board_delay_ms(2500);
+    showTime();
+    nTidx = nextTimeSelMenu.sel(nextTimeSelMenu);
+  }
+
   OLED_Clear();
   showTime();
   OLED_SetCursor(2, 0);
   sprintf(str_buf, "Next time to take med");
   OLED_DisplayString(str_buf);
   OLED_SetCursor(3, 0);
-  sprintf(str_buf, nextTimeSelMenu.optionText[nT]);
+  sprintf(str_buf, nextTimeSelMenu.optionText[nTidx]);
   OLED_DisplayString(str_buf);
 
-  Player.playFoldNum(2, nT + 1);
+  Player.playFoldNum(2, nTidx + 1);
   board_delay_ms(2500);
 
   // 0002_next_time/
@@ -242,9 +250,8 @@ void nextTimeSelMenu() {
   now_sec = begin_sec + (time_t)((clock() - clk_cnt_time) / CLOCKS_PER_SEC);
   ti = *(gmtime(&now_sec));
   lastTimeTakeMed = ti;
-  getNextTime(nT);
+  getNextTime(nTidx, false);
   haveNextTime = true;
-  haveTaked = false;
   OLED_Clear();
   showTime();
   OLED_SetCursor(2, 0);
@@ -265,22 +272,66 @@ void medMonitor() {
   if (mktime(&ti) < tmpNextSec) {
     waitNextTimeToEat();
   } else {
+    clock_t start_time;
+    start_time = clock();
+    while (1) {
+      if (detect_obj(7, 6))
+        break;
+      if (((clock() - start_time) / CLOCKS_PER_SEC) > 30) {
+        Player.playFoldNum(4, 1);
+        board_delay_ms(3000);
+      }
+    }
+
     if (haveTaked) {
       Player.playFoldNum(3, 5);
       readTime(lastTimeTakeMed);
     }
-    nextTimeSelMenu();
+    switch (freq) {
+    case 1: {
+      getNextTime(nTidx, true);
+      break;
+    }
+    case 2: {
+      nTidx = 2 - nTidx;
+      if (nTidx == 0)
+        getNextTime(nTidx, true);
+      else
+        getNextTime(nTidx, false);
+      break;
+    }
+    case 3: {
+      nTidx += 1;
+      if (nTidx >= 3) {
+        nTidx = 0;
+        getNextTime(nTidx, true);
+      } else
+        getNextTime(nTidx, false);
+      break;
+    }
+    case 4: {
+      nTidx += 1;
+      if (nTidx >= 4) {
+        nTidx = 0;
+        getNextTime(nTidx, true);
+      } else
+        getNextTime(nTidx, false);
+      break;
+    }
+    default:
+      break;
+    }
     mainMenu.renderOpt(mainMenu);
     haveTaked = true;
   }
 }
 
-void getNextTime(int nT) {
+void getNextTime(int nT, bool nextDay) {
   struct tm tmpTm = ti;
   tmpTm.tm_hour = userTi[nT].tm_hour;
   tmpTm.tm_min = userTi[nT].tm_min;
   tmpNextSec = mktime(&tmpTm);
-  if (tmpNextSec < mktime(&ti))
+  if (tmpNextSec < mktime(&ti) && nextDay)
     tmpNextSec = tmpNextSec + (60 * 60 * 24); // Add a day
   tmpNextTm = *(gmtime(&tmpNextSec));
 }

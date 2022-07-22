@@ -202,9 +202,9 @@ void textDetect() {
   if (freq == 0) {
     Player.playFoldNum(1, 5); //請重新辨識
     board_delay_ms(4000);
+    haveNextTime = false;
     return;
   }
-  haveNextTime = false;
   haveTaked = false;
 
   Player.playFoldNum(1, freq);

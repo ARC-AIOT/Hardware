@@ -281,9 +281,15 @@ After everything is setup perfectly, select "text detect" to detect text again.
 * Flow diagram if detect failed
 ```
 2. Detect success.  
-You will hear the device indicate you the detection result (proper freq to take medicine), then the device would display a menu for you to choose your next medication time.  
+You will hear the device indicate you the detection result (proper freq to take medicine), then the device would display a menu for you to choose your next medication time "IF" detect result is freq = 1.   
 Move joystick Up/Down to select when will you take medicine next time, press btn to ensure your selection.  
-After you select next time to take the med, the device will show your selection on screen and read out lout.  
+After you select next time to take the med, the device will show your selection on screen and read out loud.  
+If detected freq is not 1, the device will choose next time to take med automatically:   
+    2 -> either breakfast or dinner; choose the nearest time haven't due.   
+    3 -> either breakfast, lunch or dinner; choose the nearest time haven't due.   
+    4 -> either breakfast, lunch, dinner or bed; choose the nearest time haven't due.   
+    the device will show the result on screen and read out loud.  
+
 Then, after few sec, you'll hear the device saying: "Please put medicine bag into the box." and show "Put med into box" on screen.  
 Please put the bag in front of HC-SR04, otherwise you'll hear the device keeping saying: "Please put medicine bag into the box."  
 until you do so.

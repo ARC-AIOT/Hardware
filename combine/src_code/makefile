@@ -73,8 +73,8 @@ HEAPSZ ?= 32768
 ##
 # root dir of embARC
 ##
-EMBARC_ROOT = ./../..
-EMBARC_ROOT2 = .\..\..
+EMBARC_ROOT = ./../../..
+EMBARC_ROOT2 = .\..\..\..
 IMAGE_TOOL_INPUT_DIR = $(EMBARC_ROOT)/tools/image_gen_cstm/input
 IMAGE_TOOL_INPUT_DIR2 = $(EMBARC_ROOT2)\tools\image_gen_cstm\input
 

@@ -4,7 +4,7 @@ Our work is Smart Medication Use Support System. The purpose is to help the elde
 
 ### Demo_vid: 
  * Check the Demo_vid.mp4
- 
+
 ### Close-up Views
 
 |  Top                                               | Side                                               |
@@ -63,7 +63,7 @@ Copy all directories in dfp_src into your micro_sd card's root directory and put
 $ git clone https://github.com/ARC-AIOT/Hardware
 $ cp -r Hardware/dfp_src/**/ ($micro_sd root dir)
 $ mv Hardware Synopsys_SDK_V22.01/
-$ cd Synopsys_SDK_V22.01/Hardware/combine
+$ cd Synopsys_SDK_V22.01/Hardware/combine/src_code
 $ make && make flash
 ```
 After copying the audio files to micro_sd, don't forget to plug it into dfplayer mini  

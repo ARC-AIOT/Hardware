@@ -1,9 +1,20 @@
 # 1)Introduction
 Our work is Smart Medication Use Support System. The purpose is to help the elderly solve problem of forgetting to take medicine, our work can identify how many times a day the medicine should be taken that written on the medicine bag to remind the user to take the medicine at the specified time.
 # 2)HW/SW Setup
+
+### Demo_vid: 
+[Demo.mp4](https://drive.google.com/file/d/12t35X0YIokBKThT8SkfBrZhr8jrTMz6_/view?usp=sharing)
+
+### Close-up Views
+
+|  Top                                               | Side                                               |
+| -------------------------------------------------- | -------------------------------------------------- |
+| <img src="./img_src/top_view.jpg" style="zoom:50%;" /> | <img src="./img_src/side_view.jpg" style="zoom:50%;" /> |
+
+
+### Overview of hardwares
 <img src="./img_src/ARC_EM9D.jpg" width="20%" align="right"/>
 
-### Overview of hardwares:
 
 *  ARC EM9D AIoT DK
     * Endpoint AI development board

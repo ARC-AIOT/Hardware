@@ -3,8 +3,8 @@ Our work is Smart Medication Use Support System. The purpose is to help the elde
 # 2)HW/SW Setup
 
 ### Demo_vid: 
-[Demo.mp4](https://drive.google.com/file/d/12t35X0YIokBKThT8SkfBrZhr8jrTMz6_/view?usp=sharing)
-
+ * Check the Demo_vid.mp4
+ 
 ### Close-up Views
 
 |  Top                                               | Side                                               |

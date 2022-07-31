@@ -55,7 +55,11 @@ Our work is Smart Medication Use Support System. The purpose is to help the elde
 Connect all components as picture show.   
 
 Copy all directories in dfp_src into your micro_sd card's root directory and put micro_sd into dfplayer.  
-
+**Mind**:
+   Sometimes dfplayer won't work properly, please check if micro_sd is plugged tightly into dfplayer, then try following steps:  
+   * Disconnect and reconnect the 5V pin of arc em9d board, then press the rst btn of board.
+   * Turn off the switch of board and turn on again.  
+   Repeat above two steps until dfplayer work well.(It should work well after 1~5 trials)  
 
 ### Setup the prog
 (Please use following cmd in linux system only, you need to download [Synopsys_SDK_V22.01/](https://arc.synopsys.com.tw/resourceDetail/6) by yourself beforehand.)
